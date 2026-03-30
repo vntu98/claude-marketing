@@ -1,0 +1,40 @@
+{
+  "skill_name": "eup-test",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write tests for a lead capture API endpoint that accepts POST /api/leads with email and name fields.",
+      "expected_output": "Unit tests for validation, integration tests for the API endpoint, covering success, validation error, duplicate email, and server error cases.",
+      "assertions": [
+        "Uses Arrange-Act-Assert pattern",
+        "Tests happy path (valid creation)",
+        "Tests validation (invalid email, missing fields)",
+        "Tests edge cases (duplicate email)",
+        "Uses descriptive test names",
+        "Follows project test framework conventions"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our test suite is failing. Can you check what's wrong?",
+      "expected_output": "Analyzes test output, identifies root cause, and suggests specific fixes.",
+      "assertions": [
+        "Reads test output/errors before suggesting fixes",
+        "Identifies root cause, not just symptoms",
+        "Does NOT suggest skipping or ignoring failing tests"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Deploy our app to Vercel.",
+      "expected_output": "Defers to eup-devops for deployment, but verifies tests pass first.",
+      "assertions": [
+        "Recommends running tests before deployment",
+        "Defers to eup-devops for actual deployment"
+      ],
+      "files": []
+    }
+  ]
+}

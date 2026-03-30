@@ -1,0 +1,42 @@
+{
+  "skill_name": "eup-pm",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Our marketing team just created a content strategy for LinkedIn. We need to build a landing page to capture leads from our posts.",
+      "expected_output": "A structured task breakdown with priorities, effort estimates, and skill assignments covering database schema, backend API, frontend implementation, and tracking setup.",
+      "assertions": [
+        "Checks for product-marketing-context.md",
+        "Creates task breakdown with P0/P1/P2 priorities",
+        "Assigns tasks to specific eup- skills (eup-db, eup-backend, eup-frontend)",
+        "Includes effort estimates (S/M/L/XL)",
+        "Identifies dependencies between tasks",
+        "Recommends starting with eup-plan or eup-db"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "What's the project status? We started building the social dashboard last week.",
+      "expected_output": "Reads existing plans and provides a status overview with completed, in-progress, and pending tasks.",
+      "assertions": [
+        "Checks ./plans/ for existing plan files",
+        "Provides structured status update",
+        "Identifies blockers or next actions",
+        "Recommends which eup- skill to invoke next"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I need help writing a React component for our signup form.",
+      "expected_output": "Recognizes this is an implementation task and defers to eup-frontend or eup-code.",
+      "assertions": [
+        "Does NOT attempt to write code directly",
+        "Recommends using eup-frontend for UI implementation",
+        "May offer to create a task for it in the backlog"
+      ],
+      "files": []
+    }
+  ]
+}

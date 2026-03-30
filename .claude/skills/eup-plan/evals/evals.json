@@ -1,0 +1,43 @@
+{
+  "skill_name": "eup-plan",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Design the technical architecture for a lead capture landing page. We'll use the copy from our marketing team.",
+      "expected_output": "A complete technical plan with tech stack selection, Mermaid architecture diagram, phased implementation, and clear handoff instructions to eup-db, eup-backend, and eup-frontend.",
+      "assertions": [
+        "Checks for product-marketing-context.md",
+        "Selects and justifies tech stack",
+        "Includes Mermaid architecture diagram",
+        "Creates phased plan with dependencies",
+        "Each phase has specific files and implementation steps",
+        "Includes success criteria",
+        "Ends with clear next actions pointing to eup- skills"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Should we use Next.js or Nuxt.js for our social media dashboard?",
+      "expected_output": "A structured comparison using the evaluation matrix with weighted criteria, leading to a recommendation with rationale.",
+      "assertions": [
+        "Uses evaluation matrix with weighted scoring",
+        "Considers team familiarity, time to market, scalability",
+        "Provides clear recommendation with rationale",
+        "Does NOT just list pros/cons without a decision"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Write the backend API for user authentication.",
+      "expected_output": "Recognizes this is an implementation task and defers to eup-backend, but offers to plan the auth architecture first.",
+      "assertions": [
+        "Does NOT write implementation code",
+        "Offers to design the auth architecture",
+        "Recommends eup-backend for implementation"
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "skill_name": "eup-code",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Implement the lead capture feature: a form that submits to an API endpoint and stores data in PostgreSQL.",
+      "expected_output": "Full-stack implementation covering database schema, API endpoint, and frontend form, or delegation to specialists if the task is complex enough.",
+      "assertions": [
+        "Checks for product-marketing-context.md",
+        "Checks for existing plan in ./plans/",
+        "Follows coding standards (TypeScript, kebab-case files, < 200 lines)",
+        "Implements or delegates appropriately based on complexity",
+        "Includes input validation",
+        "Handles error states"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Fix a bug where the lead form submits twice when clicked rapidly.",
+      "expected_output": "Direct fix with debounce or disabled state on the submit button.",
+      "assertions": [
+        "Fixes the bug directly (does not delegate for a simple fix)",
+        "Uses disabled state during submission",
+        "Does NOT over-engineer the solution"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Build a complete Flutter app for managing social media posts.",
+      "expected_output": "Delegates to eup-mobile for Flutter-specific work, but offers to help with the API layer.",
+      "assertions": [
+        "Recommends eup-mobile for Flutter implementation",
+        "Offers to handle backend/API side if needed"
+      ],
+      "files": []
+    }
+  ]
+}

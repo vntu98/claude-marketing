@@ -1,0 +1,41 @@
+{
+  "skill_name": "eup-frontend",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build a landing page for our AI Social Automation Challenge. The marketing team provided this copy: headline 'Automate Your Social Media in 30 Minutes', subheadline about saving time, and a signup form.",
+      "expected_output": "Complete Next.js page with Hero section, feature sections, social proof, CTA, and lead capture form. Responsive, accessible, and performant.",
+      "assertions": [
+        "Checks for product-marketing-context.md",
+        "Uses Next.js App Router with TypeScript",
+        "Implements responsive design (mobile-first)",
+        "Includes lead capture form with validation",
+        "Uses Tailwind CSS for styling",
+        "Server Component where possible, client only for form"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Create a dashboard page showing social media metrics: total posts, engagement rate, and a chart of posts per platform.",
+      "expected_output": "Dashboard with metric cards and chart component, consuming data from API.",
+      "assertions": [
+        "Uses MetricCard pattern for KPIs",
+        "Includes chart component (Recharts or similar)",
+        "Has loading/skeleton states",
+        "Responsive grid layout"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Design the database schema for the landing page leads.",
+      "expected_output": "Defers to eup-db for schema design.",
+      "assertions": [
+        "Recommends eup-db for database work",
+        "Does NOT write SQL or schema code"
+      ],
+      "files": []
+    }
+  ]
+}

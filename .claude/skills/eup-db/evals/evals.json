@@ -1,0 +1,42 @@
+{
+  "skill_name": "eup-db",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Design a database schema for a lead capture landing page. We need to store leads, track their source, and log form submissions.",
+      "expected_output": "PostgreSQL schema with leads table, lead_events table, proper indexes, and migration files.",
+      "assertions": [
+        "Checks for product-marketing-context.md",
+        "Designs schema with proper data types and constraints",
+        "Includes created_at/updated_at timestamps",
+        "Adds indexes for common query patterns",
+        "Provides migration commands",
+        "Uses UUID for primary keys"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our analytics queries are slow. The events table has 10M rows and we query by event_name and date range.",
+      "expected_output": "Query optimization analysis with EXPLAIN ANALYZE guidance, index recommendations, and potential partitioning strategy.",
+      "assertions": [
+        "Recommends composite index on (event_name, created_at)",
+        "Suggests EXPLAIN ANALYZE for diagnosis",
+        "Considers partitioning for large tables",
+        "Does NOT suggest denormalization as first step"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Build me a REST API for the leads table.",
+      "expected_output": "Defers to eup-backend for API implementation, but offers to ensure the schema supports the needed queries.",
+      "assertions": [
+        "Does NOT write API code",
+        "Recommends eup-backend for API implementation",
+        "Offers to review schema compatibility with API needs"
+      ],
+      "files": []
+    }
+  ]
+}

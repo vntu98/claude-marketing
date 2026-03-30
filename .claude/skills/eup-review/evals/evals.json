@@ -1,0 +1,43 @@
+{
+  "skill_name": "eup-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review this API endpoint for creating leads:\n```typescript\napp.post('/api/leads', async (req, res) => {\n  const lead = await db.insert(leads).values(req.body);\n  res.json(lead);\n});\n```",
+      "expected_output": "Identifies critical issues: no input validation (SQL injection risk), no error handling, no auth check, raw req.body insertion. Provides specific fix suggestions.",
+      "assertions": [
+        "Identifies missing input validation as critical",
+        "Flags raw req.body as security risk",
+        "Notes missing error handling",
+        "Suggests adding auth middleware",
+        "Provides specific code fix suggestions",
+        "Uses the review output format with severity levels"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Review this React component for accessibility issues:\n```tsx\n<div onClick={handleClick} style={{color: '#999', fontSize: '10px'}}>\n  <img src='/icon.png' />\n  Click here\n</div>\n```",
+      "expected_output": "Identifies: div should be button, missing alt text, color contrast issue, small font size, missing keyboard handler.",
+      "assertions": [
+        "Flags div-as-button as accessibility issue",
+        "Identifies missing alt text on image",
+        "Notes color contrast concern (#999 on white)",
+        "Suggests using semantic button element",
+        "Notes missing keyboard event handler"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Implement input validation for the leads API.",
+      "expected_output": "Defers to eup-backend for implementation, offers to review after changes are made.",
+      "assertions": [
+        "Does NOT write implementation code",
+        "Recommends eup-backend for the fix",
+        "Offers to re-review after implementation"
+      ],
+      "files": []
+    }
+  ]
+}

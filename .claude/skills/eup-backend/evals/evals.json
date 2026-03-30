@@ -1,0 +1,41 @@
+{
+  "skill_name": "eup-backend",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a REST API for lead capture. We need endpoints to create leads, list leads with pagination, and get a single lead by ID.",
+      "expected_output": "Complete API implementation with route handlers, input validation (Zod), pagination, error handling, and proper HTTP status codes.",
+      "assertions": [
+        "Checks for product-marketing-context.md",
+        "Creates POST, GET (list), GET (single) endpoints",
+        "Includes input validation with Zod",
+        "Implements pagination on list endpoint",
+        "Returns proper error responses",
+        "Separates route handler from business logic"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Set up a webhook endpoint to receive events from Resend when emails are delivered or bounced.",
+      "expected_output": "Webhook endpoint with signature verification, async processing, and immediate acknowledgment.",
+      "assertions": [
+        "Verifies webhook signature",
+        "Processes events asynchronously",
+        "Returns 200 immediately",
+        "Handles different event types (delivered, bounced)"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Design a database schema for storing user sessions.",
+      "expected_output": "Defers to eup-db for schema design, but offers to define what the API layer needs from the schema.",
+      "assertions": [
+        "Recommends eup-db for schema design",
+        "Offers to specify API-layer requirements for the schema"
+      ],
+      "files": []
+    }
+  ]
+}

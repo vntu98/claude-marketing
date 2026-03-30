@@ -1,0 +1,42 @@
+{
+  "skill_name": "eup-mobile",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build a Flutter app with a dashboard screen showing social media metrics and a list of scheduled posts.",
+      "expected_output": "Flutter project with Riverpod state management, dashboard screen with metrics, post list with pull-to-refresh, and proper loading/error states.",
+      "assertions": [
+        "Checks for product-marketing-context.md",
+        "Uses Riverpod for state management",
+        "Implements loading, error, and empty states",
+        "Uses Material Design 3",
+        "Follows clean architecture (data/features/shared layers)",
+        "Includes API client setup with Dio"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Add push notifications to our Flutter app for when a scheduled post is published.",
+      "expected_output": "Firebase Cloud Messaging setup with foreground/background handling and platform-specific configuration.",
+      "assertions": [
+        "Sets up FCM initialization",
+        "Handles foreground and background messages",
+        "Includes iOS Info.plist permissions",
+        "Includes Android manifest permissions",
+        "Sends FCM token to backend"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Create the API endpoints for the mobile app.",
+      "expected_output": "Defers to eup-backend for API implementation.",
+      "assertions": [
+        "Recommends eup-backend for API work",
+        "Offers to define what the mobile app needs from the API"
+      ],
+      "files": []
+    }
+  ]
+}

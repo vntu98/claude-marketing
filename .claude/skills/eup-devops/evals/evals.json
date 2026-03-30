@@ -1,0 +1,40 @@
+{
+  "skill_name": "eup-devops",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up a CI/CD pipeline for our Next.js app. We want lint, test, and deploy to Vercel on merge to main.",
+      "expected_output": "GitHub Actions workflow with lint, typecheck, test jobs, and Vercel deployment on main branch push.",
+      "assertions": [
+        "Creates .github/workflows/ci.yml",
+        "Includes lint, typecheck, and test steps",
+        "Deploys to Vercel only on main branch",
+        "Uses GitHub Secrets for tokens",
+        "Includes caching for node_modules"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Deploy our app to production. Everything is ready.",
+      "expected_output": "Runs pre-deployment checklist first, then provides deployment steps with post-deployment verification.",
+      "assertions": [
+        "Verifies tests pass before deploying",
+        "Checks environment variables are configured",
+        "Includes post-deployment smoke test steps",
+        "Mentions monitoring after deploy"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Fix the failing unit tests in our lead form component.",
+      "expected_output": "Defers to eup-test for test fixes.",
+      "assertions": [
+        "Recommends eup-test for test-related issues",
+        "Does NOT attempt to fix tests directly"
+      ],
+      "files": []
+    }
+  ]
+}
