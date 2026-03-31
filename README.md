@@ -208,4 +208,4 @@ Node.js scripts in `tools/` for direct API access. `--dry-run` on all.
 
 ## Credits
 
-Marketing skills from [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills). Licensed under MIT.
+This company workflow is now self-contained inside the repository.

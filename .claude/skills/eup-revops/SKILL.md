@@ -321,20 +321,18 @@ Format each as a standalone document the user can implement directly. Include pl
 
 ## Tool Integrations
 
-For implementation, see the [tools registry](../../../marketingskills/tools/REGISTRY.md). Key RevOps tools:
+The base company stack only bundles RevOps-adjacent tools that are already useful across multiple workflows. Treat CRM-specific vendors as optional add-ons, not baseline dependencies.
 
-| Tool | What It Does | Guide |
-|------|-------------|-------|
-| **HubSpot** | CRM, marketing automation, lead scoring, workflows | [hubspot.md](../../../marketingskills/tools/integrations/hubspot.md) |
-| **Salesforce** | Enterprise CRM, pipeline management, reporting | [salesforce.md](../../../marketingskills/tools/integrations/salesforce.md) |
-| **Calendly** | Meeting scheduling, round-robin routing | [calendly.md](../../../marketingskills/tools/integrations/calendly.md) |
-| **SavvyCal** | Scheduling with priority-based availability | [savvycal.md](../../../marketingskills/tools/integrations/savvycal.md) |
-| **Clearbit** | Real-time lead enrichment and scoring | [clearbit.md](../../../marketingskills/tools/integrations/clearbit.md) |
-| **Apollo** | Contact data, enrichment, and outbound sequences | [apollo.md](../../../marketingskills/tools/integrations/apollo.md) |
-| **ActiveCampaign** | Marketing automation for SMBs, lead scoring | [activecampaign.md](../../../marketingskills/tools/integrations/activecampaign.md) |
-| **Zapier** | Cross-tool automation and workflow glue | [zapier.md](../../../marketingskills/tools/integrations/zapier.md) |
-| **Introw** | Partner-sourced pipeline, commissions, deal registration, QBRs | [introw.md](../../../marketingskills/tools/integrations/introw.md) |
-| **Crossbeam** | Partner account overlaps and co-sell identification | [crossbeam.md](../../../marketingskills/tools/integrations/crossbeam.md) |
+| Tool | Current Repo Support | What It Does |
+|------|----------------------|--------------|
+| **Zapier** | `tools/zapier.js` | Cross-tool automation and workflow glue |
+| **Mailchimp** | `tools/mailchimp.js` | Campaign and lifecycle list operations |
+| **Resend** | `tools/resend.js` | Transactional sends triggered by product flows |
+| **Typeform** | `tools/typeform.js` | Lead capture, qualification, and feedback forms |
+| **Dub** | `tools/dub.js` | Link attribution and campaign link governance |
+| **GA4** | `tools/ga4.js` | Pipeline measurement and attribution support |
+
+If a real deployment needs HubSpot, Salesforce, Calendly, Clearbit, Apollo, ActiveCampaign, Crossbeam, or partner-revenue tooling, add that tool only after the workflow and owner are approved.
 
 ---
 

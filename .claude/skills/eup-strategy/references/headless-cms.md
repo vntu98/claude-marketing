@@ -189,6 +189,6 @@ Pull CMS content into email templates for consistent messaging across web and em
 
 ## Relevant Integration Guides
 
-- [Sanity](../../../../marketingskills/tools/integrations/sanity.md) — GROQ queries, mutations, CLI
-- [Contentful](../../../../marketingskills/tools/integrations/contentful.md) — Delivery/Management APIs, publishing
-- [Strapi](../../../../marketingskills/tools/integrations/strapi.md) — REST CRUD, filters, document API
+- Sanity — good fit when GROQ flexibility and structured content modeling matter
+- Contentful — good fit for enterprise editorial workflows and strong publishing controls
+- Strapi — good fit when the team wants a self-hosted REST-first CMS

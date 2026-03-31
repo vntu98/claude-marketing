@@ -108,5 +108,5 @@ social-media-manager + seo-specialist + revops-manager + growth-manager (when re
 - `tracking-plan.md` is the canonical measurement plan for GA4, funnel instrumentation, and activation metrics.
 - Social scheduling should be prepared with dry-run tooling first (`tools/buffer.js`, `tools/zapier.js`) before any live publish action.
 
-## Reference Repo
-Source marketing skills: `./marketingskills/` (cloned from GitHub)
+## Reference Baseline
+All workflow-critical skills, hooks, and tools should live inside this repository so the company can operate without depending on external reference folders.

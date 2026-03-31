@@ -295,15 +295,16 @@ dataLayer.push({
 
 ## Tool Integrations
 
-For implementation, see the [tools registry](../../../marketingskills/tools/REGISTRY.md). Key analytics tools:
+Use the bundled analytics tooling first. Add another analytics stack only when the live product already depends on it and the user explicitly wants that integration.
 
-| Tool | Best For | MCP | Guide |
-|------|----------|:---:|-------|
-| **GA4** | Web analytics, Google ecosystem | ✓ | [ga4.md](../../../marketingskills/tools/integrations/ga4.md) |
-| **Mixpanel** | Product analytics, event tracking | - | [mixpanel.md](../../../marketingskills/tools/integrations/mixpanel.md) |
-| **Amplitude** | Product analytics, cohort analysis | - | [amplitude.md](../../../marketingskills/tools/integrations/amplitude.md) |
-| **PostHog** | Open-source analytics, session replay | - | [posthog.md](../../../marketingskills/tools/integrations/posthog.md) |
-| **Segment** | Customer data platform, routing | - | [segment.md](../../../marketingskills/tools/integrations/segment.md) |
+| Tool | Current Repo Support | When To Use |
+|------|----------------------|-------------|
+| **GA4** | `tools/ga4.js`, `tools/ga4-presets.json` | Default analytics system for this company |
+| **Google Search Console** | `tools/google-search-console.js` | Search performance and query visibility |
+| **Hotjar** | `tools/hotjar.js` | Heatmaps, recordings, and behavioral diagnostics |
+| **Optimizely** | `tools/optimizely.js` | Experiment execution when an A/B platform is already in play |
+
+If a project truly requires Mixpanel, Amplitude, PostHog, or Segment, treat that as approved integration scope and route it through `/eup-pm` and `/eup-plan` before adding new tooling.
 
 ---
 

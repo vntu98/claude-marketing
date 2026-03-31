@@ -332,20 +332,20 @@ For large-scale creative production (Anthropic's growth team generates 100+ vari
 
 ## Tool Integrations
 
-For pulling performance data and managing campaigns, see the [tools registry](../../../marketingskills/tools/REGISTRY.md).
+Use the bundled paid-media CLIs when performance data or campaign operations are in scope.
 
-| Platform | Pull Performance Data | Manage Campaigns | Guide |
-|----------|:---------------------:|:----------------:|-------|
-| **Google Ads** | `google-ads campaigns list`, `google-ads reports get` | `google-ads campaigns create` | [google-ads.md](../../../marketingskills/tools/integrations/google-ads.md) |
-| **Meta Ads** | `meta-ads insights get` | `meta-ads campaigns list` | [meta-ads.md](../../../marketingskills/tools/integrations/meta-ads.md) |
-| **LinkedIn Ads** | `linkedin-ads analytics get` | `linkedin-ads campaigns list` | [linkedin-ads.md](../../../marketingskills/tools/integrations/linkedin-ads.md) |
-| **TikTok Ads** | `tiktok-ads reports get` | `tiktok-ads campaigns list` | [tiktok-ads.md](../../../marketingskills/tools/integrations/tiktok-ads.md) |
+| Platform | Local Script | Typical Use |
+|----------|--------------|-------------|
+| **Google Ads** | `tools/google-ads.js` | Search campaign reporting and campaign ops |
+| **Meta Ads** | `tools/meta-ads.js` | Meta performance reads and campaign ops |
+| **LinkedIn Ads** | `tools/linkedin-ads.js` | B2B paid social reporting and campaign ops |
+| **TikTok Ads** | `tools/tiktok-ads.js` | Short-form video campaign reporting and ops |
 
 ### Workflow: Pull Data, Analyze, Generate
 
 ```bash
 # 1. Pull recent ad performance
-node tools/clis/google-ads.js reports get --type ad_performance --date-range last_30_days
+node tools/google-ads.js reports get --type ad_performance --date-range 30 --dry-run
 
 # 2. Analyze output (identify top/bottom performers)
 # 3. Feed winning patterns into this skill

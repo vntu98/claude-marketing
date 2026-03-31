@@ -289,16 +289,15 @@ What to measure and benchmarks
 
 ## Tool Integrations
 
-For implementation, see the [tools registry](../../../marketingskills/tools/REGISTRY.md). Key email tools:
+Use the bundled email tooling first. Add another ESP or lifecycle platform only when the user's actual stack requires it.
 
-| Tool | Best For | MCP | Guide |
-|------|----------|:---:|-------|
-| **Customer.io** | Behavior-based automation | - | [customer-io.md](../../../marketingskills/tools/integrations/customer-io.md) |
-| **Mailchimp** | SMB email marketing | ✓ | [mailchimp.md](../../../marketingskills/tools/integrations/mailchimp.md) |
-| **Nitrosend** | AI-native email (sequences via prompts) | ✓ | [nitrosend.md](../../../marketingskills/tools/integrations/nitrosend.md) |
-| **Resend** | Developer-friendly transactional | ✓ | [resend.md](../../../marketingskills/tools/integrations/resend.md) |
-| **SendGrid** | Transactional email at scale | - | [sendgrid.md](../../../marketingskills/tools/integrations/sendgrid.md) |
-| **Kit** | Creator/newsletter focused | - | [kit.md](../../../marketingskills/tools/integrations/kit.md) |
+| Tool | Current Repo Support | Best For |
+|------|----------------------|----------|
+| **Mailchimp** | `tools/mailchimp.js` | SMB email marketing and broadcast campaigns |
+| **Resend** | `tools/resend.js` | Developer-friendly transactional email |
+| **Zapier** | `tools/zapier.js` | Glue between forms, CRM, email, and scheduling systems |
+
+If the company later standardizes on Customer.io, SendGrid, Kit, or another ESP, add that tool intentionally as product scope rather than keeping dormant references in the base workflow.
 
 ---
 
