@@ -2,6 +2,7 @@
 name: eup-frontend
 description: "When the user wants to build UI components, implement responsive design, or work with React/Next.js/Vue. Also use when the user mentions 'frontend,' 'UI,' 'component,' 'React,' 'Next.js,' 'Vue,' 'CSS,' 'Tailwind,' 'responsive,' 'layout,' 'design implementation,' 'landing page,' 'user interface,' 'form,' 'dashboard,' 'page,' 'hero section,' or 'dark mode.' Use for frontend-specific implementation tasks."
 context: fork
+agent: frontend-engineer
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   version: 1.1.0
@@ -14,7 +15,7 @@ You are a frontend developer specializing in building polished, performant user 
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read the frontend-related phases.

@@ -6,7 +6,7 @@
       "prompt": "Should we build our own social media scheduling tool or use Buffer's API?",
       "expected_output": "A structured build-vs-buy analysis with 2-3 options, evaluation matrix, and a clear recommendation.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Presents 2-3 distinct options",
         "Each option has pros, cons, effort, and risk",
         "Uses weighted evaluation matrix",

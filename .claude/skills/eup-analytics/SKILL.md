@@ -2,7 +2,8 @@
 name: eup-analytics
 description: When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions "set up tracking," "GA4," "Google Analytics," "conversion tracking," "event tracking," "UTM parameters," "tag manager," "GTM," "analytics implementation," "tracking plan," "how do I measure this," "track conversions," "attribution," "Mixpanel," "Segment," "are my events firing," or "analytics isn't working." Use this whenever someone asks how to know if something is working or wants to measure marketing results. For A/B test measurement, see eup-abtest.
 context: fork
-allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
+agent: ga4-analyst
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash
 metadata:
   version: 1.1.0
 ---
@@ -14,13 +15,15 @@ You are an expert in analytics implementation and measurement. Your goal is to h
 ## Initial Assessment
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 Before implementing tracking, understand:
 
 1. **Business Context** - What decisions will this data inform? What are key conversions?
 2. **Current State** - What tracking exists? What tools are in use?
 3. **Technical Context** - What's the tech stack? Any privacy/compliance requirements?
+
+If GA4 credentials exist, prefer `node tools/ga4.js presets run --preset <name> --property "$GA4_PROPERTY_ID"` or `node tools/ga4.js ...` for live property data before giving recommendations.
 
 ---
 
@@ -154,6 +157,7 @@ gtag('event', 'signup_completed', {
 ```
 
 **For detailed GA4 implementation**: See [references/ga4-implementation.md](references/ga4-implementation.md)
+**For ready-to-run reports**: See [references/ga4-report-presets.md](references/ga4-report-presets.md)
 
 ---
 
@@ -291,21 +295,21 @@ dataLayer.push({
 
 ## Tool Integrations
 
-For implementation, see the [tools registry](../../tools/REGISTRY.md). Key analytics tools:
+For implementation, see the [tools registry](../../../marketingskills/tools/REGISTRY.md). Key analytics tools:
 
 | Tool | Best For | MCP | Guide |
 |------|----------|:---:|-------|
-| **GA4** | Web analytics, Google ecosystem | ✓ | [ga4.md](../../tools/integrations/ga4.md) |
-| **Mixpanel** | Product analytics, event tracking | - | [mixpanel.md](../../tools/integrations/mixpanel.md) |
-| **Amplitude** | Product analytics, cohort analysis | - | [amplitude.md](../../tools/integrations/amplitude.md) |
-| **PostHog** | Open-source analytics, session replay | - | [posthog.md](../../tools/integrations/posthog.md) |
-| **Segment** | Customer data platform, routing | - | [segment.md](../../tools/integrations/segment.md) |
+| **GA4** | Web analytics, Google ecosystem | ✓ | [ga4.md](../../../marketingskills/tools/integrations/ga4.md) |
+| **Mixpanel** | Product analytics, event tracking | - | [mixpanel.md](../../../marketingskills/tools/integrations/mixpanel.md) |
+| **Amplitude** | Product analytics, cohort analysis | - | [amplitude.md](../../../marketingskills/tools/integrations/amplitude.md) |
+| **PostHog** | Open-source analytics, session replay | - | [posthog.md](../../../marketingskills/tools/integrations/posthog.md) |
+| **Segment** | Customer data platform, routing | - | [segment.md](../../../marketingskills/tools/integrations/segment.md) |
 
 ---
 
 ## Related Skills
 
 - **eup-abtest**: For experiment tracking
-- **seo-audit**: For organic traffic analysis
-- **page-cro**: For conversion optimization (uses this data)
-- **revops**: For pipeline metrics, CRM tracking, and revenue attribution
+- **eup-research**: For competitor and organic demand context
+- **eup-copywriting**: For conversion changes informed by this data
+- **eup-pm**: For analytics-driven implementation work across product or CRM flows

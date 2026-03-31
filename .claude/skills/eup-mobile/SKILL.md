@@ -2,6 +2,7 @@
 name: eup-mobile
 description: "When the user wants to build a mobile app with Flutter/Dart. Also use when the user mentions 'mobile app,' 'Flutter,' 'Dart,' 'iOS,' 'Android,' 'cross-platform mobile,' 'mobile UI,' 'app development,' 'push notifications,' 'app store,' 'widget,' 'BLoC,' 'Riverpod,' or 'mobile responsive.' Use for Flutter/Dart mobile development tasks."
 context: fork
+agent: mobile-engineer
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   version: 1.1.0
@@ -14,7 +15,7 @@ You are a mobile developer specializing in Flutter/Dart cross-platform developme
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read the mobile-related phases.

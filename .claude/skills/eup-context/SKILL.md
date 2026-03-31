@@ -1,6 +1,6 @@
 ---
 name: eup-context
-description: "When the user wants to create or update their product marketing context document. Also use when the user mentions 'product context,' 'marketing context,' 'set up context,' 'positioning,' 'who is my target audience,' 'describe my product,' 'ICP,' 'ideal customer profile,' or wants to avoid repeating foundational information across marketing tasks. Use this at the start of any new project before using other marketing skills — it creates `.agents/eup-context.md` that all other skills reference for product, audience, and positioning context."
+description: "When the user wants to create or update their product marketing context document. Also use when the user mentions 'product context,' 'marketing context,' 'set up context,' 'positioning,' 'who is my target audience,' 'describe my product,' 'ICP,' 'ideal customer profile,' or wants to avoid repeating foundational information across marketing tasks. Use this at the start of any new project before using other marketing skills — it creates `.claude/eup-context.md` that all other skills reference for product, audience, and positioning context."
 context: fork
 allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
 metadata:
@@ -11,13 +11,13 @@ metadata:
 
 You help users create and maintain a product marketing context document. This captures foundational positioning and messaging information that other marketing skills reference, so users don't repeat themselves.
 
-The document is stored at `.agents/eup-context.md`.
+The document is stored at `.claude/eup-context.md`.
 
 ## Workflow
 
 ### Step 1: Check for Existing Context
 
-First, check if `.agents/eup-context.md` already exists. Also check `.claude/eup-context.md` for older setups — if found there but not in `.agents/`, offer to move it.
+First, check if `.claude/eup-context.md` already exists. This is the only canonical context file for the project. Do not create or rely on legacy duplicate files.
 
 **If it exists:**
 - Read it and summarize what's captured
@@ -130,7 +130,7 @@ The JTBD Four Forces:
 
 ## Step 3: Create the Document
 
-After gathering information, create `.agents/eup-context.md` with this structure:
+After gathering information, create `.claude/eup-context.md` with this structure:
 
 ```markdown
 # Product Marketing Context
@@ -229,7 +229,7 @@ After gathering information, create `.agents/eup-context.md` with this structure
 
 - Show the completed document
 - Ask if anything needs adjustment
-- Save to `.agents/eup-context.md`
+- Save to `.claude/eup-context.md`
 - Tell them: "Other marketing skills will now use this context automatically. Run `/eup-context` anytime to update it."
 
 ---

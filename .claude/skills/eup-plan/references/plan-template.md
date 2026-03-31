@@ -2,8 +2,28 @@
 
 ## plan.md (Overview)
 
+Example phase files for the same plan folder:
+
+- `phase-01-foundation.md`
+- `phase-02-data-and-backend.md`
+- `phase-03-product-and-ux.md`
+- `phase-04-integrations.md`
+- `phase-05-quality-and-release.md`
+
 ```markdown
+---
+title: "[Project Name]"
+description: "[One-line outcome]"
+status: pending
+priority: P1
+effort: 5d
+created: 2026-03-31
+tags: [marketing, dev]
+---
+
 # Plan: [Project Name]
+
+Approval Status: pending
 
 ## Context
 [Why this project exists — what marketing strategy or business need it serves]
@@ -30,6 +50,14 @@
 | 3 | Integration | eup-backend | 1-2 days | Phase 2 |
 | 4 | Polish & Deploy | eup-review, eup-test, eup-devops | 1-2 days | Phase 3 |
 
+## Ownership
+| Phase | Owner | File Scope |
+|-------|-------|------------|
+| 1 | database-engineer | `src/db/**` |
+| 2 | backend-engineer | `src/api/**` |
+| 3 | frontend-engineer | `src/components/**`, `src/app/**` |
+| 4 | quality-reviewer + qa-tester + devops-engineer | tests, CI, deploy config |
+
 ## Risks
 - [Risk 1]: [Mitigation]
 - [Risk 2]: [Mitigation]
@@ -44,6 +72,7 @@
 - **Priority:** P0
 - **Effort:** [X days]
 - **Skills involved:** eup-db, eup-backend
+- **Owner:** database-engineer
 - **Blocked by:** [Phase N-1 or None]
 
 ## Functional Requirements
@@ -106,4 +135,8 @@
 - Unit: Input validation, email format checking
 - Integration: API endpoint with test database
 - E2E: Full form submission flow
+
+## Rollback
+- Revert migration [name]
+- Disable endpoint behind feature flag if release regression appears
 ```

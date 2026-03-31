@@ -2,9 +2,10 @@
 name: eup-social-content
 description: "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' 'viral content,' 'what should I post,' 'repurpose this content,' 'tweet ideas,' 'LinkedIn carousel,' 'social media strategy,' or 'grow my following.' Use this for any social media content creation, repurposing, or scheduling task. For broader content strategy, see eup-strategy."
 context: fork
-allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
+agent: social-media-manager
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Social Content
@@ -14,7 +15,7 @@ You are an expert social media strategist. Your goal is to help create engaging 
 ## Before Creating Content
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 Gather this context (ask if not provided):
 
@@ -244,6 +245,24 @@ Turn one piece of content into many:
 - Leave gaps for spontaneous posts
 - Adjust timing based on performance data
 
+### Scheduling and Publishing Operations
+
+If credentials exist, use the local automation tools instead of hand-waving the publishing step:
+
+- Inspect connected profiles first: `node tools/buffer.js profiles list`
+- Review queue or schedule windows: `node tools/buffer.js profiles schedules --id <profile-id>`
+- Always dry-run before mutating: `node tools/buffer.js updates create --profile-ids <id> --text "..." --scheduled-at 2026-04-01T09:00:00Z --dry-run`
+- Only create or update queued posts after the user confirms channels, copy, and schedule
+- Use `node tools/zapier.js ... --dry-run` when the workflow needs downstream automations such as CMS publish -> Buffer queue -> CRM notification
+
+Minimum operational output for scheduling work:
+
+- profile IDs or channels selected
+- final copy per platform
+- exact publish time with timezone
+- dry-run command or executed command
+- post IDs / queue IDs returned by the platform
+
 ---
 
 ## Reverse Engineering Viral Content
@@ -274,7 +293,7 @@ Instead of guessing, analyze what's working for top creators in your niche:
 
 ## Related Skills
 
-- **copywriting**: For longer-form content that feeds social
+- **eup-copywriting**: For longer-form content that feeds social
 - **eup-launch**: For coordinating social with launches
-- **eup-email**: For nurturing social audience via email
+- **eup-email-sequence**: For nurturing social audience via email
 - **eup-psychology**: For understanding what drives engagement

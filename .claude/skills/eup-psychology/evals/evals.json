@@ -4,9 +4,9 @@
     {
       "id": 1,
       "prompt": "How can I use psychology to increase conversions on our pricing page? We sell a B2B SaaS tool with three tiers ($29, $79, $199/month).",
-      "expected_output": "Should check for product-marketing-context.md first. Should apply relevant pricing psychology models: anchoring (show the highest plan first or use a decoy), charm pricing (consider $29 vs $30), Rule of 100 (percentage vs dollar discounts), Good-Better-Best framing, loss aversion (show what they miss on lower tiers). Should also apply broader persuasion models: social proof near pricing, scarcity for limited-time offers, default effect (pre-select recommended plan). Should provide specific, actionable recommendations tied to their price points.",
+      "expected_output": "Should check for .claude/eup-context.md first. Should apply relevant pricing psychology models: anchoring (show the highest plan first or use a decoy), charm pricing (consider $29 vs $30), Rule of 100 (percentage vs dollar discounts), Good-Better-Best framing, loss aversion (show what they miss on lower tiers). Should also apply broader persuasion models: social proof near pricing, scarcity for limited-time offers, default effect (pre-select recommended plan). Should provide specific, actionable recommendations tied to their price points.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Applies pricing psychology models (anchoring, charm pricing, Rule of 100)",
         "Applies Good-Better-Best framing",
         "Applies loss aversion to tier differentiation",

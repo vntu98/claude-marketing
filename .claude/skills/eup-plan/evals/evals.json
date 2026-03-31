@@ -6,7 +6,7 @@
       "prompt": "Design the technical architecture for a lead capture landing page. We'll use the copy from our marketing team.",
       "expected_output": "A complete technical plan with tech stack selection, Mermaid architecture diagram, phased implementation, and clear handoff instructions to eup-db, eup-backend, and eup-frontend.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Selects and justifies tech stack",
         "Includes Mermaid architecture diagram",
         "Creates phased plan with dependencies",

@@ -2,6 +2,7 @@
 name: eup-backend
 description: "When the user wants to build APIs, server logic, integrations, or authentication. Also use when the user mentions 'backend,' 'API,' 'server,' 'endpoint,' 'REST,' 'GraphQL,' 'authentication,' 'authorization,' 'webhook,' 'integration,' 'middleware,' 'server-side,' 'route,' 'controller,' 'microservice,' or 'cron job.' Use for backend-specific implementation tasks."
 context: fork
+agent: backend-engineer
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   version: 1.1.0
@@ -14,7 +15,7 @@ You are a backend developer specializing in APIs, integrations, and server logic
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read the backend-related phases.

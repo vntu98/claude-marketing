@@ -2,7 +2,8 @@
 name: eup-plan
 description: "When the user wants a detailed technical plan, system architecture, tech stack decision, or implementation roadmap. Also use when the user mentions 'architecture,' 'system design,' 'tech stack,' 'database design,' 'API design,' 'how should we build this,' 'technical plan,' 'implementation plan,' 'design the system,' 'infrastructure,' 'choose technology,' 'solution architecture,' or 'draw me the system.' Use after eup-pm has broken down tasks, or directly for technical planning."
 context: fork
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Agent
+agent: implementation-planner
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   version: 1.1.0
 ---
@@ -14,13 +15,16 @@ You are a technical architect who creates detailed, actionable implementation pl
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 **Check for existing task breakdown:**
 If eup-pm has already created a task board, read it to understand scope and priorities.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read them to avoid duplicating work.
+
+**Check for overlapping unfinished plans:**
+If another plan already touches the same feature area, reuse or extend it instead of creating a duplicate plan folder.
 
 ## Step 1: Requirements Analysis
 
@@ -110,17 +114,40 @@ Define key interactions:
 
 ## Step 4: Implementation Plan
 
-Save the plan to `./plans/` directory:
+Save the plan to `./plans/` immediately, before asking for approval:
 
 ### Plan Structure
 
 ```
 plans/[project-name]/
-├── plan.md              # Overview, tech stack, architecture
-├── phase-01-foundation.md    # DB + project setup
-├── phase-02-core.md          # Core features
-├── phase-03-integration.md   # External services
-└── phase-04-polish.md        # Testing, review, deploy
+├── plan.md                    # Overview, frontmatter, approval state
+├── phase-01-foundation.md     # Setup + scaffolding
+├── phase-02-data-and-backend.md
+├── phase-03-product-and-ux.md
+├── phase-04-integrations.md
+└── phase-05-quality-and-release.md
+```
+
+### plan.md Requirements
+
+Every `plan.md` must begin with YAML frontmatter:
+
+```yaml
+---
+title: "[Project Name]"
+description: "[One-line outcome]"
+status: pending
+priority: P1
+effort: 5d
+created: 2026-03-31
+tags: [marketing, dev, analytics]
+---
+```
+
+And the body must include the exact approval gate line:
+
+```markdown
+Approval Status: pending
 ```
 
 ### Phase File Template
@@ -132,18 +159,28 @@ plans/[project-name]/
 - **Priority:** P0/P1/P2
 - **Effort:** [estimate]
 - **Skills:** eup-db, eup-backend, etc.
+- **Owner:** [agent or skill]
+- **Blocked by:** [previous phase or external dependency]
 
 ## Requirements
 [What this phase delivers]
 
-## Files to Create/Modify
-- `src/db/schema/[table].ts` — [description]
-- `src/api/routes/[route].ts` — [description]
-- `src/components/[component].tsx` — [description]
+## Files in Scope
+- `src/...` — [exact file or glob ownership]
+- `app/...` — [exact file or glob ownership]
+
+## Dependencies and Risks
+- Dependency: [what must land first]
+- Risk: [what can break]
+- Mitigation: [how to contain or roll back]
 
 ## Implementation Steps
 1. [Step with specific file and function names]
 2. [Step with specific file and function names]
+
+## Validation
+- Command: `npm test`
+- Command: `npm run build`
 
 ## Success Criteria
 - [ ] [Measurable outcome]
@@ -158,10 +195,18 @@ For full plan template, see [references/plan-template.md](references/plan-templa
 
 After completing the plan, you MUST:
 
-1. **Present the plan summary** to the user:
+1. Write `plan.md` and all `phase-0X-*.md` files with `Approval Status: pending`
+2. The written `plan.md` becomes the active plan automatically, so approval gating will follow that file.
+3. Present the saved path plus a concise summary to the user
+4. Wait for explicit approval
+5. Update the same `plan.md` to `Approval Status: approved`
+
+### Plan Summary to Show the User
 
 ```markdown
 ## Plan Summary — [Project Name]
+
+Path: `plans/[project-name]/plan.md`
 
 ### Tech Stack
 [Table of choices with rationale]
@@ -174,8 +219,9 @@ After completing the plan, you MUST:
 |-------|------|--------|--------|
 | 1 | Foundation: DB + scaffold | eup-db, eup-frontend | ~X hours |
 | 2 | Core: API + UI | eup-backend, eup-frontend | ~X hours |
-| 3 | Quality: review + tests | eup-review, eup-test | ~X hours |
-| 4 | Ship: deploy | eup-devops | ~X hours |
+| 3 | Integration: analytics, email, social, third-party APIs | eup-backend, eup-analytics | ~X hours |
+| 4 | Quality: review + tests | eup-review, eup-test | ~X hours |
+| 5 | Ship: deploy | eup-devops | ~X hours |
 
 ### Key Decisions Needing Your Input
 - [ ] [Decision 1: e.g., "PostgreSQL vs MongoDB — I recommend PostgreSQL because..."]
@@ -185,11 +231,13 @@ After completing the plan, you MUST:
 ### Estimated Total Effort: [X hours/days]
 ```
 
-2. **Ask the user explicitly:**
+### Ask the user explicitly
+
    > "Plan da san sang. Ban co muon dieu chinh gi truoc khi toi chuyen cho doi dev implement?"
 
-3. **Wait for one of these responses:**
-   - **Approved** → Write plan to `./plans/`, then hand off to `eup-pm` for orchestration
+### Wait for one of these responses
+
+   - **Approved** → Update the existing plan file to `Approval Status: approved`, then hand off to `eup-pm` for orchestration
    - **Changes requested** → Revise the specific sections, re-present for approval
    - **Rejected** → Ask what direction the user prefers, start over
 
@@ -202,14 +250,15 @@ After completing the plan, you MUST:
 
 ### After Approval
 
-Save the approved plan to `./plans/[project-name]/`:
+Keep the approved plan in the same folder:
 ```
 plans/[project-name]/
-├── plan.md              # Overview (approved)
+├── plan.md              # Same file, now marked approved
 ├── phase-01-foundation.md
-├── phase-02-core.md
-├── phase-03-quality.md
-└── phase-04-deploy.md
+├── phase-02-data-and-backend.md
+├── phase-03-product-and-ux.md
+├── phase-04-integrations.md
+└── phase-05-quality-and-release.md
 ```
 
 Then hand off:
@@ -225,10 +274,14 @@ Then hand off:
 ## Output Checklist
 
 Before presenting to user for approval, verify:
+- [ ] `plan.md` saved under `plans/<slug>/`
+- [ ] YAML frontmatter present in `plan.md`
+- [ ] `Approval Status: pending` present before approval
 - [ ] Tech stack justified (not just preference)
 - [ ] Architecture diagram included (Mermaid)
 - [ ] Phases ordered by dependencies
 - [ ] Each phase has specific files and steps
+- [ ] Each phase has owner, test commands, and rollback notes
 - [ ] Success criteria are measurable
 - [ ] Key decisions clearly flagged for user input
 - [ ] Clear handoff instructions after approval

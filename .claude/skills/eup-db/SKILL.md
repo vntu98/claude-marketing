@@ -2,6 +2,7 @@
 name: eup-db
 description: "When the user wants to design database schemas, write migrations, optimize queries, or work with PostgreSQL/MongoDB. Also use when the user mentions 'database,' 'schema,' 'migration,' 'SQL,' 'PostgreSQL,' 'MongoDB,' 'query,' 'index,' 'table design,' 'data model,' 'relationships,' 'database performance,' 'ERD,' 'entity relationship,' 'foreign key,' 'normalize,' or 'seed data.' Use for database-specific tasks."
 context: fork
+agent: database-engineer
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   version: 1.1.0
@@ -14,7 +15,7 @@ You are a database engineer specializing in schema design, migrations, and query
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read the database-related phases for schema requirements.

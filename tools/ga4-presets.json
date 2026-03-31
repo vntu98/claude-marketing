@@ -1,0 +1,126 @@
+{
+  "acquisition-overview": {
+    "type": "report",
+    "description": "Channel and campaign quality snapshot.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "sessionSource",
+      "sessionMedium",
+      "sessionCampaignName"
+    ],
+    "metrics": [
+      "sessions",
+      "activeUsers",
+      "newUsers",
+      "conversions",
+      "engagementRate"
+    ]
+  },
+  "landing-page-performance": {
+    "type": "report",
+    "description": "Landing page performance by source and medium.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "landingPage",
+      "sessionSource",
+      "sessionMedium"
+    ],
+    "metrics": [
+      "sessions",
+      "activeUsers",
+      "conversions",
+      "engagementRate"
+    ]
+  },
+  "learner-journey-funnel": {
+    "type": "report",
+    "description": "Core learner journey and monetization funnel event counts.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "eventName"
+    ],
+    "metrics": [
+      "eventCount",
+      "totalUsers"
+    ],
+    "dimensionFilter": {
+      "filter": {
+        "fieldName": "eventName",
+        "inListFilter": {
+          "values": [
+            "signup_started",
+            "signup_completed",
+            "placement_test_completed",
+            "lesson_started",
+            "lesson_completed",
+            "paywall_viewed",
+            "subscription_started"
+          ]
+        }
+      }
+    }
+  },
+  "content-engagement": {
+    "type": "report",
+    "description": "Content, landing page, and lesson asset engagement.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "pageTitle",
+      "pagePath"
+    ],
+    "metrics": [
+      "screenPageViews",
+      "activeUsers",
+      "engagementRate",
+      "averageSessionDuration"
+    ]
+  },
+  "event-breakdown": {
+    "type": "report",
+    "description": "Event volume and reach audit.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "eventName"
+    ],
+    "metrics": [
+      "eventCount",
+      "totalUsers"
+    ]
+  },
+  "realtime-overview": {
+    "type": "realtime",
+    "description": "Active users right now by country and device.",
+    "dimensions": [
+      "country",
+      "deviceCategory"
+    ],
+    "metrics": [
+      "activeUsers"
+    ]
+  }
+}

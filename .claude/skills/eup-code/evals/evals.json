@@ -6,7 +6,7 @@
       "prompt": "Implement the lead capture feature: a form that submits to an API endpoint and stores data in PostgreSQL.",
       "expected_output": "Full-stack implementation covering database schema, API endpoint, and frontend form, or delegation to specialists if the task is complex enough.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Checks for existing plan in ./plans/",
         "Follows coding standards (TypeScript, kebab-case files, < 200 lines)",
         "Implements or delegates appropriately based on complexity",

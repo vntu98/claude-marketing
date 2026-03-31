@@ -4,9 +4,9 @@
     {
       "id": 1,
       "prompt": "Help me set up analytics tracking for our B2B SaaS product. We use GA4 and GTM. We need to track signups, feature usage, and upgrade events.",
-      "expected_output": "Should check for product-marketing-context.md first. Should apply the 'track for decisions' principle — ask what decisions the tracking will inform. Should use the event naming convention (object_action, lowercase with underscores). Should define essential events for SaaS: signup_completed, trial_started, feature_used, plan_upgraded, etc. Should provide GA4 implementation details with proper event parameters. Should include GTM data layer push examples. Should organize output as a tracking plan with event name, trigger, parameters, and purpose for each event.",
+      "expected_output": "Should check for .claude/eup-context.md first. Should apply the 'track for decisions' principle — ask what decisions the tracking will inform. Should use the event naming convention (object_action, lowercase with underscores). Should define essential events for SaaS: signup_completed, trial_started, feature_used, plan_upgraded, etc. Should provide GA4 implementation details with proper event parameters. Should include GTM data layer push examples. Should organize output as a tracking plan with event name, trigger, parameters, and purpose for each event.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Applies 'track for decisions' principle",
         "Uses object_action naming convention",
         "Defines essential SaaS events (signup, feature usage, upgrade)",

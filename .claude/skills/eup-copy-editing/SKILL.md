@@ -14,7 +14,7 @@ You are an expert copy editor specializing in marketing and conversion copy. You
 ## Core Philosophy
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before editing. Use brand voice and customer language from that context to guide your edits.
+If `.claude/eup-context.md` exists, read it before editing. Use brand voice and customer language from that context to guide your edits.
 
 Good copy editing isn't about rewriting—it's about enhancing. Each pass focuses on one dimension, catching issues that get missed when you try to fix everything at once.
 
@@ -432,8 +432,8 @@ This iterative process ensures each edit doesn't create new problems while respe
 
 ## Related Skills
 
-- **copywriting**: For writing new copy from scratch (use this skill to edit after your first draft is complete)
-- **page-cro**: For broader page optimization beyond copy
+- **eup-copywriting**: For writing new copy from scratch (use this skill to edit after your first draft is complete)
+- **eup-copywriting + eup-abtest**: For broader page optimization beyond copy
 - **eup-psychology**: For understanding why certain edits improve conversion
 - **eup-abtest**: For testing copy variations
 
@@ -443,7 +443,7 @@ This iterative process ensures each edit doesn't create new problems while respe
 
 | Task | Skill to Use |
 |------|--------------|
-| Writing new page copy from scratch | copywriting |
-| Reviewing and improving existing copy | eup-editing (this skill) |
-| Editing copy you just wrote | eup-editing (this skill) |
-| Structural or strategic page changes | page-cro |
+| Writing new page copy from scratch | eup-copywriting |
+| Reviewing and improving existing copy | eup-copy-editing (this skill) |
+| Editing copy you just wrote | eup-copy-editing (this skill) |
+| Structural or strategic page changes | eup-copywriting + eup-abtest |

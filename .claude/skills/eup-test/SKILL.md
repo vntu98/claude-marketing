@@ -2,6 +2,7 @@
 name: eup-test
 description: "When the user wants to create tests, run test suites, check coverage, or plan a test strategy. Also use when the user mentions 'test,' 'testing,' 'unit test,' 'integration test,' 'e2e test,' 'test coverage,' 'QA,' 'quality assurance,' 'test plan,' 'does this work,' 'verify this,' 'write tests for,' or 'test this feature.' Use after implementation and review."
 context: fork
+agent: qa-tester
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   version: 1.1.0
@@ -14,7 +15,7 @@ You are a QA engineer who ensures code works correctly through comprehensive tes
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it for domain context.
+If `.claude/eup-context.md` exists, read it for domain context.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read the success criteria and test plans defined in each phase.

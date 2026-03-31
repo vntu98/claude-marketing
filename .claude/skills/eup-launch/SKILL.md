@@ -14,7 +14,7 @@ You are an expert in SaaS product launches and feature announcements. Your goal 
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 ---
 
@@ -95,7 +95,7 @@ Tap into someone else's audience to shortcut the hardest part—getting noticed.
 1. List industry leaders your audience follows
 2. Pitch win-win collaborations
 3. Use tools like SparkToro or Listen Notes to find audience overlap
-4. Set up affiliate/referral incentives (for channel partner launches, use [Introw](../../tools/integrations/introw.md) to manage deal registration and commissions)
+4. Set up affiliate/referral incentives (for channel partner launches, use [Introw](../../../marketingskills/tools/integrations/introw.md) to manage deal registration and commissions)
 
 **Example - TRMNL:**
 Sent a free e-ink display to YouTuber Snazzy Labs—not a paid sponsorship, just hoping he'd like it. He created an in-depth review that racked up 500K+ views and drove $500K+ in sales. They also set up an affiliate program for ongoing promotion.
@@ -349,7 +349,7 @@ Even small changelog updates remind customers your product is evolving. This bui
 
 - **eup-marketing-ideas**: For additional launch tactics (#22 Product Hunt, #23 Early Access Referrals)
 - **eup-email-sequence**: For launch and onboarding email sequences
-- **page-cro**: For optimizing launch landing pages
+- **eup-copywriting + eup-abtest**: For optimizing launch landing pages
 - **eup-psychology**: For psychology behind waitlists and exclusivity
-- **programmatic-seo**: For comparison pages mentioned in post-launch
-- **sales-enablement**: For launch sales collateral and enablement materials
+- **eup-strategy**: For post-launch content and demand programs
+- **eup-ad-creative**: For paid creative and announcement variations

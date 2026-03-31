@@ -6,7 +6,7 @@
       "prompt": "Our marketing team just created a content strategy for LinkedIn. We need to build a landing page to capture leads from our posts.",
       "expected_output": "A structured task breakdown with priorities, effort estimates, and skill assignments covering database schema, backend API, frontend implementation, and tracking setup.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Creates task breakdown with P0/P1/P2 priorities",
         "Assigns tasks to specific eup- skills (eup-db, eup-backend, eup-frontend)",
         "Includes effort estimates (S/M/L/XL)",

@@ -1,10 +1,11 @@
 ---
 name: eup-research
-description: When the user wants to conduct, analyze, or synthesize customer research. Use when the user mentions "customer research," "ICP research," "talk to customers," "analyze transcripts," "customer interviews," "survey analysis," "support ticket analysis," "voice of customer," "VOC," "build personas," "customer personas," "jobs to be done," "JTBD," "what do customers say," "what are customers struggling with," "Reddit mining," "G2 reviews," "review mining," "digital watering holes," "community research," "forum research," "competitor reviews," "customer sentiment," or "find out why customers churn/convert/buy." Use for both analyzing existing research assets AND gathering new research from online sources. For writing copy informed by research, see copywriting. For acting on research to improve pages, see page-cro.
+description: When the user wants to conduct, analyze, or synthesize customer research. Use when the user mentions "customer research," "ICP research," "talk to customers," "analyze transcripts," "customer interviews," "survey analysis," "support ticket analysis," "voice of customer," "VOC," "build personas," "customer personas," "jobs to be done," "JTBD," "what do customers say," "what are customers struggling with," "Reddit mining," "G2 reviews," "review mining," "digital watering holes," "community research," "forum research," "competitor reviews," "customer sentiment," or "find out why customers churn/convert/buy." Use for both analyzing existing research assets AND gathering new research from online sources. For writing copy informed by research, see eup-copywriting. For turning findings into page experiments, pair with eup-copywriting and eup-abtest.
 context: fork
-allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
+agent: market-researcher
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Customer Research
@@ -14,7 +15,7 @@ You are an expert customer researcher. Your goal is to help uncover what custome
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context to skip questions already answered.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context to skip questions already answered.
 
 ---
 
@@ -27,6 +28,10 @@ You have raw research material (transcripts, surveys, reviews, tickets). Your jo
 You need to gather intel from online sources (Reddit, G2, forums, communities, review sites). Your job is to know where to look and what to extract.
 
 Most engagements combine both. Establish which mode applies before proceeding.
+
+If competitor or search data is needed and credentials exist, you may use `node tools/semrush.js ...` to support the research.
+
+If the research will influence positioning, GTM strategy, pricing, SEO, content direction, or product planning, competitor research is part of the job. Read [references/competitor-template.md](references/competitor-template.md) before finalizing the package.
 
 ---
 
@@ -169,6 +174,37 @@ After gathering from multiple sources, synthesize into:
 
 ---
 
+## Competitor Research Overlay
+
+Use this overlay whenever the task is exploratory, strategy-setting, positioning-heavy, or explicitly mentions competitors, alternatives, pricing, SEO, or why customers switch.
+
+Classify alternatives into:
+
+- **Direct competitors** — same core job, same buyer, same evaluation set
+- **Secondary / adjacent competitors** — partial overlap, different entry point or wedge
+- **Substitutes** — internal build, agency/freelancer, spreadsheet/manual workflow, or doing nothing
+
+For each relevant competitor, capture:
+
+1. **Who they target** — ICP, use case, and buyer posture
+2. **Positioning** — promise, angle, and category language
+3. **Strengths** — where they genuinely beat us or set buyer expectations
+4. **Weaknesses** — product gaps, trust gaps, pricing friction, UX issues, or negative review themes
+5. **Pricing / packaging** — tiers, free plan or trial posture, and hidden friction
+6. **Customer signals** — praise, complaints, switching triggers, and exact review language when available
+7. **SEO / content posture** — what topics they own, what search intent they capture, and where they are weak
+8. **Win / loss guidance** — where we should compete, where we should reposition, and where we should avoid a head-on fight
+
+Rules:
+
+- Separate evidence from inference. If a weakness is inferred rather than directly sourced, say so.
+- Distinguish direct, secondary, and substitute options explicitly.
+- Use customer language from reviews or communities wherever possible.
+- End with a lightweight SWOT for our product based on the evidence, not internal wishful thinking.
+- Save the result as `competitor-landscape.md` whenever competitor work is in scope.
+
+---
+
 ## Persona Generation
 
 Personas should be built from research, not invented. Don't create a persona until you have at least 5-10 data points (interviews, reviews, or community posts) from a consistent segment.
@@ -242,6 +278,57 @@ Depending on what the user needs, offer:
 
 Ask the user which deliverable(s) they need before generating output.
 
+## Required Report Package
+
+Every research run must save a report package under:
+
+```text
+reports/research/YYYYMMDD-[slug]/
+```
+
+Minimum required files:
+
+1. `research-summary.md`
+   - Executive summary
+   - Top themes
+   - Confidence and sample notes
+   - Recommended next actions
+2. `customer-signals.md`
+   - Jobs to Be Done
+   - Functional job
+   - Emotional job
+   - Social job
+   - Pain Points
+   - Trigger Events
+   - Desired Outcomes
+   - Language and Vocabulary
+   - Alternatives Considered
+3. `quote-bank.md`
+   - Verbatim quotes grouped by pain, trigger, desired outcome, and vocabulary
+   - Every quote must include source and date when available
+4. `sources.md`
+   - Source list, URLs or file paths, date collected, segment notes, and confidence/bias notes
+5. `competitor-landscape.md`
+   - Required for market scans, positioning work, strategy inputs, or any request that mentions competitors or alternatives
+   - Direct / secondary / substitute market map
+   - Comparison matrix with strengths, weaknesses, pricing, positioning, review themes, and switch triggers
+   - SWOT summary for our product grounded in the evidence
+
+Rules for the report package:
+
+- `customer-signals.md` is mandatory even if the request sounds informal
+- Desired outcomes must capture exact quotes, not paraphrases, whenever quotes exist
+- Pain points must prioritize unprompted complaints and emotionally loaded language
+- Alternatives must include do nothing, internal build, agency/freelancer, and direct competitors when relevant
+- `competitor-landscape.md` must separate direct, secondary, and substitute options when competitor work is in scope
+- Every named competitor must include strengths, weaknesses, pricing or packaging notes, positioning, and source-backed evidence
+- SWOT should be about our company or product, not a generic market SWOT
+- If evidence is weak, say so explicitly in `research-summary.md`
+- All files saved under `reports/**` must be written in Vietnamese for headings, summaries, analysis, and recommendations
+- Verbatim customer quotes, product names, event names, and raw source labels may stay in the original language when preserving fidelity matters
+
+Use [references/report-template.md](references/report-template.md) as the default structure.
+
 ---
 
 ## Questions to Ask Before Proceeding
@@ -262,10 +349,10 @@ Don't ask all five at once — lead with #1 and #2, then follow up as needed.
 
 | When to hand off | Skill |
 |-----------------|-------|
-| Writing copy informed by the research | `copywriting` |
-| Optimizing a page using VOC insights | `page-cro` |
-| Building a competitor comparison page | `competitor-alternatives` |
-| Creating a churn prevention strategy from churn research | `churn-prevention` |
-| Planning paid ads informed by research | `paid-ads` |
-| Writing cold email using research on pain/trigger | `cold-email` |
+| Writing copy informed by the research | `eup-copywriting` |
+| Turning VOC insights into conversion experiments | `eup-copywriting + eup-abtest` |
+| Building a competitor comparison page | `eup-copywriting + eup-strategy` |
+| Turning churn research into lifecycle actions | `eup-email-sequence + eup-launch` |
+| Planning paid acquisition informed by research | `eup-launch + eup-ad-creative` |
+| Writing outbound or lifecycle email using pain/trigger insight | `eup-email-sequence` |
 | Planning content based on discovered topics | `eup-strategy` |

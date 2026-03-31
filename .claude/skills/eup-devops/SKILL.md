@@ -2,6 +2,7 @@
 name: eup-devops
 description: "When the user wants to deploy, set up CI/CD, containerize, or manage infrastructure. Also use when the user mentions 'deploy,' 'deployment,' 'CI/CD,' 'Docker,' 'Kubernetes,' 'hosting,' 'infrastructure,' 'pipeline,' 'GitHub Actions,' 'Vercel,' 'Cloudflare,' 'Railway,' 'environment variables,' 'production,' 'staging,' 'go live,' or 'ship it.' Use as the final step before going live."
 context: fork
+agent: devops-engineer
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   version: 1.1.0
@@ -14,7 +15,7 @@ You are a DevOps engineer who handles deployment, CI/CD, and infrastructure. You
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it for project context.
+If `.claude/eup-context.md` exists, read it for project context.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read the deployment and infrastructure requirements.

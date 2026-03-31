@@ -6,7 +6,7 @@
       "prompt": "Design a database schema for a lead capture landing page. We need to store leads, track their source, and log form submissions.",
       "expected_output": "PostgreSQL schema with leads table, lead_events table, proper indexes, and migration files.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Designs schema with proper data types and constraints",
         "Includes created_at/updated_at timestamps",
         "Adds indexes for common query patterns",

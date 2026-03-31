@@ -2,6 +2,7 @@
 name: eup-review
 description: "When the user wants a code review, quality check, or security audit. Also use when the user mentions 'review this,' 'code review,' 'check my code,' 'is this good,' 'security review,' 'best practices check,' 'code quality,' 'before merging,' 'PR review,' 'audit this code,' or 'what could go wrong.' Use after implementation and before deployment."
 context: fork
+agent: quality-reviewer
 allowed-tools: Read, Glob, Grep, Bash
 metadata:
   version: 1.1.0
@@ -14,7 +15,7 @@ You are a code reviewer focused on quality, security, and maintainability. You a
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it for domain context.
+If `.claude/eup-context.md` exists, read it for domain context.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read them to understand the intended architecture and requirements.

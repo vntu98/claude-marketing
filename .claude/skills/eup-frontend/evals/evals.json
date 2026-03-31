@@ -3,10 +3,10 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Build a landing page for our AI Social Automation Challenge. The marketing team provided this copy: headline 'Automate Your Social Media in 30 Minutes', subheadline about saving time, and a signup form.",
+      "prompt": "Build a landing page for our Japanese learning app. The marketing team provided this copy: headline 'Study Japanese 15 Minutes A Day', subheadline about clearer daily progress, and a signup form.",
       "expected_output": "Complete Next.js page with Hero section, feature sections, social proof, CTA, and lead capture form. Responsive, accessible, and performant.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Uses Next.js App Router with TypeScript",
         "Implements responsive design (mobile-first)",
         "Includes lead capture form with validation",

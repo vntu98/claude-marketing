@@ -1,6 +1,6 @@
 ---
 name: eup-email-sequence
-description: When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions "email sequence," "drip campaign," "nurture sequence," "onboarding emails," "welcome sequence," "re-engagement emails," "email automation," "lifecycle emails," "trigger-based emails," "email funnel," "email workflow," "what emails should I send," "welcome series," or "email cadence." Use this for any multi-email automated flow. For cold outreach emails, see cold-email. For in-app onboarding, see onboarding-cro.
+description: When the user wants to create or optimize an email sequence, drip campaign, automated email flow, or lifecycle email program. Also use when the user mentions "email sequence," "drip campaign," "nurture sequence," "onboarding emails," "welcome sequence," "re-engagement emails," "email automation," "lifecycle emails," "trigger-based emails," "email funnel," "email workflow," "what emails should I send," "welcome series," or "email cadence." Use this for any multi-email automated flow. For outbound or sales-style email, adapt this workflow. For in-app onboarding, pair this skill with product and experiment workflows.
 context: fork
 allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
 metadata:
@@ -14,7 +14,7 @@ You are an expert in email marketing and automation. Your goal is to create emai
 ## Initial Assessment
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 Before creating a sequence, understand:
 
@@ -289,25 +289,23 @@ What to measure and benchmarks
 
 ## Tool Integrations
 
-For implementation, see the [tools registry](../../tools/REGISTRY.md). Key email tools:
+For implementation, see the [tools registry](../../../marketingskills/tools/REGISTRY.md). Key email tools:
 
 | Tool | Best For | MCP | Guide |
 |------|----------|:---:|-------|
-| **Customer.io** | Behavior-based automation | - | [customer-io.md](../../tools/integrations/customer-io.md) |
-| **Mailchimp** | SMB email marketing | ✓ | [mailchimp.md](../../tools/integrations/mailchimp.md) |
-| **Nitrosend** | AI-native email (sequences via prompts) | ✓ | [nitrosend.md](../../tools/integrations/nitrosend.md) |
-| **Resend** | Developer-friendly transactional | ✓ | [resend.md](../../tools/integrations/resend.md) |
-| **SendGrid** | Transactional email at scale | - | [sendgrid.md](../../tools/integrations/sendgrid.md) |
-| **Kit** | Creator/newsletter focused | - | [kit.md](../../tools/integrations/kit.md) |
+| **Customer.io** | Behavior-based automation | - | [customer-io.md](../../../marketingskills/tools/integrations/customer-io.md) |
+| **Mailchimp** | SMB email marketing | ✓ | [mailchimp.md](../../../marketingskills/tools/integrations/mailchimp.md) |
+| **Nitrosend** | AI-native email (sequences via prompts) | ✓ | [nitrosend.md](../../../marketingskills/tools/integrations/nitrosend.md) |
+| **Resend** | Developer-friendly transactional | ✓ | [resend.md](../../../marketingskills/tools/integrations/resend.md) |
+| **SendGrid** | Transactional email at scale | - | [sendgrid.md](../../../marketingskills/tools/integrations/sendgrid.md) |
+| **Kit** | Creator/newsletter focused | - | [kit.md](../../../marketingskills/tools/integrations/kit.md) |
 
 ---
 
 ## Related Skills
 
-- **lead-magnets**: For planning lead magnets that feed into nurture sequences
-- **churn-prevention**: For cancel flows, save offers, and dunning strategy (email supports this)
-- **onboarding-cro**: For in-app onboarding (email supports this)
-- **copywriting**: For landing pages emails link to
+- **eup-copywriting**: For landing pages emails link to
 - **eup-abtest**: For testing email elements
-- **popup-cro**: For email capture popups
-- **revops**: For lifecycle stages that trigger email sequences
+- **eup-launch**: For lifecycle and launch timing around the sequence
+- **eup-analytics**: For measuring sequence and funnel performance
+- **eup-pm**: For implementing lifecycle automation in product or CRM systems

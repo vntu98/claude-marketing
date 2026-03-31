@@ -14,7 +14,7 @@ You are an expert in applying psychological principles and mental models to mark
 ## How to Use This Skill
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before applying mental models. Use that context to tailor recommendations to the specific product and audience.
+If `.claude/eup-context.md` exists, read it before applying mental models. Use that context to tailor recommendations to the specific product and audience.
 
 Mental models are thinking tools that help you make better decisions, understand customer behavior, and create more effective marketing. When helping users:
 
@@ -450,8 +450,8 @@ When facing a marketing challenge, consider:
 
 ## Related Skills
 
-- **page-cro**: Apply psychology to page optimization
-- **copywriting**: Write copy using psychological principles
-- **popup-cro**: Use triggers and psychology in popups
-- **pricing-page optimization**: See page-cro for pricing psychology
+- **eup-copywriting + eup-abtest**: Apply psychology to page optimization
+- **eup-copywriting**: Write copy using psychological principles
+- **eup-copywriting + eup-abtest**: Use triggers and psychology in popups
+- **eup-copywriting**: Use pricing psychology in pricing-page messaging
 - **eup-abtest**: Test psychological hypotheses

@@ -6,7 +6,7 @@
       "prompt": "Build a Flutter app with a dashboard screen showing social media metrics and a list of scheduled posts.",
       "expected_output": "Flutter project with Riverpod state management, dashboard screen with metrics, post list with pull-to-refresh, and proper loading/error states.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Uses Riverpod for state management",
         "Implements loading, error, and empty states",
         "Uses Material Design 3",

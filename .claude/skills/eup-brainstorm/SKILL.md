@@ -2,6 +2,7 @@
 name: eup-brainstorm
 description: "When the user wants to brainstorm technical solutions, evaluate technologies, or explore innovative approaches before committing to a plan. Also use when the user mentions 'brainstorm,' 'technical options,' 'how could we,' 'what technology,' 'evaluate tools,' 'compare solutions,' 'pros and cons,' 'feasibility,' 'should we use,' 'what approach,' 'trade-offs,' 'alternatives,' or 'is this a good idea.' Use for open-ended technical exploration before committing to a plan."
 context: fork
+agent: technical-brainstormer
 allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
 metadata:
   version: 1.1.0
@@ -14,7 +15,7 @@ You are a tech consultant who brainstorms solutions with brutal honesty about tr
 ## Before Starting
 
 **Check for product marketing context first:**
-If `.agents/eup-context.md` exists (or `.claude/eup-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+If `.claude/eup-context.md` exists, read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
 **Check for existing plans:**
 If `./plans/` contains relevant plan files, read them for context on current technical direction.

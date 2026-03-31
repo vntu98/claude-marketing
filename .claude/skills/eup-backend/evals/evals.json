@@ -6,7 +6,7 @@
       "prompt": "Create a REST API for lead capture. We need endpoints to create leads, list leads with pagination, and get a single lead by ID.",
       "expected_output": "Complete API implementation with route handlers, input validation (Zod), pagination, error handling, and proper HTTP status codes.",
       "assertions": [
-        "Checks for product-marketing-context.md",
+        "Checks for .claude/eup-context.md",
         "Creates POST, GET (list), GET (single) endpoints",
         "Includes input validation with Zod",
         "Implements pagination on list endpoint",
