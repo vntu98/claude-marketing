@@ -24,6 +24,7 @@ Optional:
 The company runtime now enforces these operating rules:
 
 - `TaskCreated` validates that every team task includes a real task packet with owner, dependencies, acceptance criteria, and validation.
+- Implementation writes are allowed only when the active plan bundle is truly ready: `Approval Status: approved`, valid `task-graph.json`, and non-empty `ownership-matrix.md`.
 - Session snapshots are persisted under `.claude/session-state/` and replayed on `startup`, `resume`, and `compact` so work can continue without re-scoping from memory.
 - Teammates receive richer `SubagentStart` context: peers, assigned tasks, active strategy artifact, active plan artifact, and current team progress.
 - Implementation-capable roles (`database-engineer`, `backend-engineer`, `frontend-engineer`, `mobile-engineer`, `fullstack-developer`, `qa-tester`, `devops-engineer`) declare `isolation: worktree` for safe parallel execution.

@@ -22,8 +22,12 @@ function strategyLabel(projectRoot, strategy) {
 }
 
 function approvalLabel(approval) {
-  if (approval.approved) {
+  if (approval.implementationReady) {
     return 'approved';
+  }
+
+  if (approval.approvedPlan) {
+    return 'approved-blocked';
   }
 
   if (approval.pendingPlan) {

@@ -64,6 +64,17 @@ const STRATEGY_REQUIRED_SECTIONS = [
     pattern: /^##\s+.*(?:Role Handoffs|Bàn Giao Vai Trò).*$/im
   }
 ];
+const TASK_GRAPH_REQUIRED_FIELDS = [
+  'id',
+  'title',
+  'owner',
+  'dependencies',
+  'fileGlobs',
+  'acceptanceCriteria',
+  'validationCommands',
+  'blockingPolicy',
+  'taskDescription'
+];
 const AGENT_EDIT_POLICIES = {
   'market-researcher': {
     label: 'research artifacts only',
@@ -133,6 +144,18 @@ function safeRead(filePath) {
   } catch {
     return null;
   }
+}
+
+function hasText(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function hasNonEmptyList(value) {
+  if (Array.isArray(value)) {
+    return value.some((entry) => hasText(String(entry || '')));
+  }
+
+  return hasText(String(value || ''));
 }
 
 function walk(dir, predicate, results = []) {
@@ -325,6 +348,23 @@ function listPlanFiles(projectRoot) {
   );
 }
 
+function getPlanRuntimeArtifacts(planFile) {
+  if (!planFile) {
+    return {
+      planDir: null,
+      taskGraphPath: null,
+      ownershipMatrixPath: null
+    };
+  }
+
+  const planDir = path.dirname(planFile);
+  return {
+    planDir,
+    taskGraphPath: path.join(planDir, 'task-graph.json'),
+    ownershipMatrixPath: path.join(planDir, 'ownership-matrix.md')
+  };
+}
+
 function listStrategyMemoFiles(projectRoot) {
   return walk(
     path.join(projectRoot, 'reports', 'strategy'),
@@ -338,6 +378,160 @@ function matchApprovalState(planFile) {
     approved: PLAN_APPROVED_PATTERN.test(content),
     pending: PLAN_PENDING_PATTERN.test(content)
   };
+}
+
+function validateTaskGraphArtifact(taskGraphPath) {
+  const result = {
+    exists: false,
+    valid: false,
+    taskCount: 0,
+    errors: []
+  };
+
+  if (!taskGraphPath || !fs.existsSync(taskGraphPath)) {
+    result.errors.push('missing task-graph.json');
+    return result;
+  }
+
+  result.exists = true;
+  const content = safeRead(taskGraphPath);
+  if (!hasText(content)) {
+    result.errors.push('task-graph.json is empty');
+    return result;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    result.errors.push('task-graph.json is not valid JSON');
+    return result;
+  }
+
+  const tasks = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(parsed?.tasks)
+      ? parsed.tasks
+      : null;
+
+  if (!tasks) {
+    result.errors.push('task-graph.json must be an array or contain a top-level `tasks` array');
+    return result;
+  }
+
+  if (!tasks.length) {
+    result.errors.push('task-graph.json must contain at least one task');
+    return result;
+  }
+
+  result.taskCount = tasks.length;
+  const errors = [];
+
+  tasks.forEach((task, index) => {
+    const label = hasText(task?.id) ? `task ${task.id}` : `task index ${index}`;
+    if (!task || typeof task !== 'object' || Array.isArray(task)) {
+      errors.push(`${label} must be an object`);
+      return;
+    }
+
+    for (const field of TASK_GRAPH_REQUIRED_FIELDS) {
+      if (!(field in task)) {
+        errors.push(`${label} is missing \`${field}\``);
+      }
+    }
+
+    if (!hasText(task.id)) {
+      errors.push(`${label} must declare a non-empty id`);
+    }
+
+    if (!hasText(task.title)) {
+      errors.push(`${label} must declare a non-empty title`);
+    }
+
+    if (!hasText(task.owner)) {
+      errors.push(`${label} must declare a non-empty owner`);
+    }
+
+    if (!Array.isArray(task.dependencies)) {
+      errors.push(`${label} must declare \`dependencies\` as an array`);
+    }
+
+    if (!hasNonEmptyList(task.fileGlobs)) {
+      errors.push(`${label} must declare at least one file glob`);
+    }
+
+    if (!hasNonEmptyList(task.acceptanceCriteria)) {
+      errors.push(`${label} must declare acceptance criteria`);
+    }
+
+    if (!hasNonEmptyList(task.validationCommands)) {
+      errors.push(`${label} must declare validation commands`);
+    }
+
+    const blockingPolicy = task.blockingPolicy;
+    const blockingPolicyValid = (
+      hasText(blockingPolicy) ||
+      (blockingPolicy && typeof blockingPolicy === 'object' && !Array.isArray(blockingPolicy) && Object.keys(blockingPolicy).length > 0)
+    );
+    if (!blockingPolicyValid) {
+      errors.push(`${label} must declare a blocking policy`);
+    }
+
+    if (!hasText(task.taskDescription)) {
+      errors.push(`${label} must declare a non-empty taskDescription`);
+    }
+  });
+
+  result.valid = errors.length === 0;
+  result.errors = errors;
+  return result;
+}
+
+function readPlanBundleState(planFile) {
+  const artifacts = getPlanRuntimeArtifacts(planFile);
+  const taskGraph = validateTaskGraphArtifact(artifacts.taskGraphPath);
+  const ownershipMatrixExists = Boolean(
+    artifacts.ownershipMatrixPath &&
+    fs.existsSync(artifacts.ownershipMatrixPath) &&
+    hasText(safeRead(artifacts.ownershipMatrixPath))
+  );
+  const missingArtifacts = [];
+
+  if (!ownershipMatrixExists) {
+    missingArtifacts.push('ownership-matrix.md');
+  }
+
+  if (!taskGraph.exists) {
+    missingArtifacts.push('task-graph.json');
+  }
+
+  return {
+    ...artifacts,
+    ready: taskGraph.valid && ownershipMatrixExists,
+    missingArtifacts,
+    taskGraphValid: taskGraph.valid,
+    taskGraphErrors: taskGraph.errors,
+    taskCount: taskGraph.taskCount,
+    ownershipMatrixReady: ownershipMatrixExists
+  };
+}
+
+function summarizePlanBundleIssues(approval) {
+  const issues = [];
+
+  if (approval?.missingArtifacts?.includes('task-graph.json')) {
+    issues.push('missing task-graph.json');
+  } else if (approval && approval.taskGraphValid === false && approval.taskGraphErrors?.length) {
+    issues.push(...approval.taskGraphErrors);
+  }
+
+  if (approval?.missingArtifacts?.includes('ownership-matrix.md')) {
+    issues.push('missing ownership-matrix.md');
+  } else if (approval && approval.ownershipMatrixReady === false && approval.ownershipMatrixPath) {
+    issues.push('ownership-matrix.md is empty');
+  }
+
+  return [...new Set(issues.filter(Boolean))];
 }
 
 function getActivePlanStatePath(projectRoot) {
@@ -513,8 +707,16 @@ function relativeLabel(projectRoot, absolutePath, fallback = 'none') {
 }
 
 function approvalSummaryLabel(projectRoot, approval) {
-  if (approval.approvedPlan) {
+  if (approval.approvedPlan && approval.implementationReady) {
     return `approved (${relativeLabel(projectRoot, approval.approvedPlan)})`;
+  }
+
+  if (approval.approvedPlan) {
+    const issues = summarizePlanBundleIssues(approval);
+    const missing = issues.length
+      ? issues[0]
+      : 'runtime artifacts incomplete';
+    return `approved-but-blocked (${relativeLabel(projectRoot, approval.approvedPlan)}; ${missing})`;
   }
 
   if (approval.pendingPlan) {
@@ -577,8 +779,17 @@ function buildSessionStateMarkdown(projectRoot, payload = {}) {
     remaining.push('- No active strategy memo recorded yet. Run the marketing cycle or save strategy-memo.md first.');
   }
 
-  if (approval.approved && approval.approvedPlan) {
+  if (approval.approved && approval.approvedPlan && approval.implementationReady) {
     completed.push(`- Approved plan active: ${relativeLabel(projectRoot, approval.approvedPlan)}`);
+    if (approval.taskCount) {
+      completed.push(`- Task graph ready with ${approval.taskCount} task(s).`);
+    }
+  } else if (approval.approvedPlan) {
+    const bundleIssues = summarizePlanBundleIssues(approval);
+    remaining.push(
+      `- Approved plan is not implementation-ready yet: ${relativeLabel(projectRoot, approval.approvedPlan)}.` +
+      `${bundleIssues.length ? ` Fix: ${bundleIssues.join('; ')}.` : ''}`
+    );
   } else if (approval.pendingPlan) {
     remaining.push(`- Plan still pending user approval: ${relativeLabel(projectRoot, approval.pendingPlan)}`);
   } else if (approval.resolution === 'ambiguous') {
@@ -624,11 +835,19 @@ function buildSessionStateMarkdown(projectRoot, payload = {}) {
   artifacts.push(`- Active plan: ${activePlanLabel}`);
   artifacts.push(`- Strategy status: ${strategySummaryLabel(projectRoot, strategy)}`);
   artifacts.push(`- Plan status: ${approvalSummaryLabel(projectRoot, approval)}`);
+  if (approval.taskGraphPath) {
+    artifacts.push(`- Task graph: ${relativeLabel(projectRoot, approval.taskGraphPath)}`);
+  }
+  if (approval.ownershipMatrixPath) {
+    artifacts.push(`- Ownership matrix: ${relativeLabel(projectRoot, approval.ownershipMatrixPath)}`);
+  }
 
   checklist.push('- Re-open the active strategy memo and active plan before dispatching more work.');
   checklist.push('- Check task ownership before parallelizing; do not let two engineers touch the same files.');
   if (!approval.approved) {
     checklist.push('- Keep implementation blocked until the active plan says `Approval Status: approved`.');
+  } else if (!approval.implementationReady) {
+    checklist.push('- Do not dispatch engineers yet. Regenerate `task-graph.json` and `ownership-matrix.md` for the active approved plan.');
   } else {
     checklist.push('- If implementation resumes, start from ownership-matrix.md and validation commands, not memory.');
   }
@@ -735,26 +954,32 @@ function readApprovalState(projectRoot) {
 
   if (activePlan.exists) {
     const activeState = matchApprovalState(activePlan.absolutePath);
+    const bundle = readPlanBundleState(activePlan.absolutePath);
     return {
       approved: activeState.approved,
       approvedPlan: activeState.approved ? activePlan.absolutePath : null,
       pendingPlan: activeState.pending ? activePlan.absolutePath : null,
       activePlan: activePlan.absolutePath,
+      implementationReady: activeState.approved && bundle.ready,
       totalPlans: planFiles.length,
-      resolution: 'active'
+      resolution: 'active',
+      ...bundle
     };
   }
 
   if (planFiles.length === 1) {
     const onlyPlan = planFiles[0];
     const planState = matchApprovalState(onlyPlan);
+    const bundle = readPlanBundleState(onlyPlan);
     return {
       approved: planState.approved,
       approvedPlan: planState.approved ? onlyPlan : null,
       pendingPlan: planState.pending ? onlyPlan : null,
       activePlan: onlyPlan,
+      implementationReady: planState.approved && bundle.ready,
       totalPlans: 1,
-      resolution: 'single'
+      resolution: 'single',
+      ...bundle
     };
   }
 
@@ -775,10 +1000,19 @@ function readApprovalState(projectRoot) {
     approvedPlan: null,
     pendingPlan: null,
     activePlan: null,
+    implementationReady: false,
     totalPlans: planFiles.length,
     approvedCount,
     pendingCount,
-    resolution: planFiles.length ? 'ambiguous' : 'missing'
+    resolution: planFiles.length ? 'ambiguous' : 'missing',
+    taskGraphPath: null,
+    ownershipMatrixPath: null,
+    missingArtifacts: [],
+    taskGraphValid: false,
+    taskGraphErrors: [],
+    taskCount: 0,
+    ownershipMatrixReady: false,
+    ready: false
   };
 }
 
@@ -948,8 +1182,13 @@ function buildWorkflowSummary(projectRoot) {
     : 'none';
 
   let planStatus = 'missing';
-  if (approval.approved && approval.approvedPlan) {
+  if (approval.approved && approval.approvedPlan && approval.implementationReady) {
     planStatus = `approved (${normalizeRelative(projectRoot, approval.approvedPlan)})`;
+  } else if (approval.approvedPlan) {
+    const blockers = summarizePlanBundleIssues(approval);
+    planStatus =
+      `approved-but-blocked (${normalizeRelative(projectRoot, approval.approvedPlan)}; ` +
+      `${blockers.join('; ') || 'runtime artifacts incomplete'})`;
   } else if (approval.pendingPlan) {
     planStatus = `pending (${normalizeRelative(projectRoot, approval.pendingPlan)})`;
   } else if (approval.resolution === 'ambiguous') {
@@ -994,6 +1233,16 @@ function buildWorkflowSummary(projectRoot) {
     `Current strategy memo: ${strategyStatus}`,
     `Active plan: ${activePlanLabel}`,
     `Current plan approval: ${planStatus}`,
+    approval.taskGraphPath && !approval.missingArtifacts?.includes('task-graph.json')
+      ? `Current task graph: ${normalizeRelative(projectRoot, approval.taskGraphPath)}${approval.taskCount ? ` (${approval.taskCount} task(s))` : ''}`
+      : approval.taskGraphPath
+        ? `Current task graph: missing (expected ${normalizeRelative(projectRoot, approval.taskGraphPath)})`
+        : 'Current task graph: missing',
+    approval.ownershipMatrixPath && approval.ownershipMatrixReady
+      ? `Current ownership matrix: ${normalizeRelative(projectRoot, approval.ownershipMatrixPath)}`
+      : approval.ownershipMatrixPath
+        ? `Current ownership matrix: missing (expected ${normalizeRelative(projectRoot, approval.ownershipMatrixPath)})`
+        : 'Current ownership matrix: missing',
     `Active team runtime: ${teamRuntimeStatus}`,
     'Delegation rule: the main session is the team lead. Project subagents define teammate roles; teammates claim tasks, message the lead, and do not recursively spawn more teammates.',
     buildOperatingBar()
@@ -1033,9 +1282,11 @@ module.exports = {
   readTeamTasks,
   readStrategyState,
   readHookStdin,
+  readPlanBundleState,
   responseWithContext,
   setActivePlan,
   setActiveStrategy,
+  summarizePlanBundleIssues,
   summarizeTeamTasks,
   validateAgentEditPath,
   writeLatestSessionState,

@@ -23,6 +23,28 @@ const CODE_WRITER_ROLES = new Set([
   'qa-tester',
   'devops-engineer'
 ]);
+const VALID_OWNER_ROLES = new Set([
+  'market-researcher',
+  'competitor-analyst',
+  'ga4-analyst',
+  'marketing-strategist',
+  'social-media-manager',
+  'seo-specialist',
+  'revops-manager',
+  'growth-manager',
+  'project-manager',
+  'codebase-scout',
+  'technical-brainstormer',
+  'implementation-planner',
+  'database-engineer',
+  'backend-engineer',
+  'frontend-engineer',
+  'mobile-engineer',
+  'fullstack-developer',
+  'quality-reviewer',
+  'qa-tester',
+  'devops-engineer'
+]);
 
 const READ_SCOPE_ROLES = new Set([
   'codebase-scout',
@@ -89,6 +111,13 @@ try {
   }
 
   const ownerRole = parseOwnerRole(description);
+  if (ownerRole && !VALID_OWNER_ROLES.has(ownerRole)) {
+    process.stderr.write(
+      `Task "${subject}" declares unknown Owner Role: ${ownerRole}. Use one of the project agent names exactly.\n`
+    );
+    process.exit(2);
+  }
+
   const missing = [
     ...missingGeneralSections(description),
     ...missingRoleSpecificSections(ownerRole, description)

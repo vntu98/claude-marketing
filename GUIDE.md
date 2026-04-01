@@ -119,6 +119,12 @@ Nó phù hợp cho:
 - dùng task graph và `worktree` isolation
 - sau đó đi qua review và test gate
 
+Điều kiện bắt buộc:
+
+- `plan.md` có `Approval Status: approved`
+- `task-graph.json` hợp lệ và đọc được
+- `ownership-matrix.md` tồn tại và có nội dung
+
 Ví dụ:
 
 ```text

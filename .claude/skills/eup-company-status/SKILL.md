@@ -27,6 +27,7 @@ Report:
 - current strategy status
 - current dev intake status
 - current plan approval status
+- current plan bundle status (`task-graph.json` + `ownership-matrix.md`)
 - active team and progress if present
 - blockers, missing artifacts, or ambiguous state
 - next required handoff

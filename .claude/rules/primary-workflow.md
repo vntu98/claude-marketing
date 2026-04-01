@@ -36,6 +36,7 @@ All roles in this workflow operate at a senior or staff-level bar. Outputs shoul
 - `implementation-planner` writes `plans/<slug>/plan.md`, `plans/<slug>/task-graph.json`, and `plans/<slug>/ownership-matrix.md`.
 - The most recently edited `plans/**/plan.md` becomes the active plan for approval gating.
 - Every plan must contain an explicit line: `Approval Status: pending`.
+- Implementation stays blocked if the active approved plan is missing a valid `task-graph.json` or a non-empty `ownership-matrix.md`.
 - No product-code edits outside `.claude/`, `plans/`, `reports/`, `docs/`, `tracking-plan.md`, `README.md`, or `CLAUDE.md` before approval.
 - After the user explicitly approves, update that same active plan file to `Approval Status: approved`.
 

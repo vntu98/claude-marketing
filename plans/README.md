@@ -17,6 +17,7 @@ Every `plan.md` must start with YAML frontmatter and include one explicit approv
 - `Approval Status: approved`
 
 The workflow hooks use that line to decide whether implementation edits are allowed.
+Implementation remains blocked if that approved plan is missing a valid `task-graph.json` or a non-empty `ownership-matrix.md`.
 The last edited `plans/**/plan.md` becomes the active plan automatically; source-code edits and post-approval orchestration are gated against that active plan, not against unrelated historical plans.
 
 ## Task Graph Contract

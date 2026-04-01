@@ -102,6 +102,59 @@ function writeTeamConfig(homeDir, teamName, members) {
   );
 }
 
+function writePlanRuntimeArtifacts(planDir, options = {}) {
+  const {
+    taskGraph = 'valid',
+    ownershipMatrix = true
+  } = options;
+
+  fs.mkdirSync(planDir, { recursive: true });
+
+  if (taskGraph === 'valid') {
+    fs.writeFileSync(
+      path.join(planDir, 'task-graph.json'),
+      `${JSON.stringify({
+        tasks: [
+          {
+            id: 'task-frontend',
+            title: 'Implement frontend slice',
+            owner: 'frontend-engineer',
+            dependencies: [],
+            fileGlobs: ['src/**'],
+            acceptanceCriteria: ['approved UI slice is implemented'],
+            validationCommands: ['npm test -- frontend'],
+            blockingPolicy: 'strict',
+            taskDescription: [
+              'Phase: implementation',
+              'Owner Role: frontend-engineer',
+              'Depends On: none',
+              'File Ownership:',
+              '- src/**',
+              'Isolation: worktree',
+              'Acceptance Criteria:',
+              '- approved UI slice is implemented',
+              'Validation:',
+              '- npm test -- frontend'
+            ].join('\n')
+          }
+        ]
+      }, null, 2)}\n`
+    );
+  } else if (taskGraph === 'invalid') {
+    fs.writeFileSync(
+      path.join(planDir, 'task-graph.json'),
+      `${JSON.stringify({ tasks: [{ id: 'task-bad' }] }, null, 2)}\n`
+    );
+  }
+
+  if (ownershipMatrix) {
+    fs.writeFileSync(
+      path.join(planDir, 'ownership-matrix.md'),
+      '# Ownership Matrix\n\n- frontend-engineer: `src/**`\n'
+    );
+  }
+}
+
 test('workflow configuration validates', () => {
   const result = validateProject(projectRoot);
   assert.equal(result.ok, true, result.errors.join('\n'));
@@ -272,6 +325,7 @@ test('plan approval gate allows source edits after approval', () => {
     path.join(planDir, 'plan.md'),
     '# Plan\n\nApproval Status: approved\n'
   );
+  writePlanRuntimeArtifacts(planDir);
   const hook = runHook(
     '.claude/hooks/plan-approval-gate.cjs',
     {
@@ -286,6 +340,59 @@ test('plan approval gate allows source edits after approval', () => {
 
   assert.equal(hook.status, 0);
   assert.equal(parsed.continue, true);
+});
+
+test('plan approval gate blocks source edits when approved plan bundle is incomplete', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const planDir = path.join(tmpDir, 'plans', 'feature');
+  fs.mkdirSync(planDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(planDir, 'plan.md'),
+    '# Plan\n\nApproval Status: approved\n'
+  );
+
+  const hook = runHook(
+    '.claude/hooks/plan-approval-gate.cjs',
+    {
+      tool_name: 'Edit',
+      tool_input: {
+        file_path: path.join(tmpDir, 'src', 'app.ts')
+      }
+    },
+    tmpDir
+  );
+  const parsed = JSON.parse(hook.stdout);
+
+  assert.equal(hook.status, 0);
+  assert.equal(parsed.hookSpecificOutput.permissionDecision, 'deny');
+  assert.match(parsed.hookSpecificOutput.permissionDecisionReason, /task-graph\.json|ownership-matrix\.md/i);
+});
+
+test('plan approval gate blocks source edits when approved task graph is invalid', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const planDir = path.join(tmpDir, 'plans', 'feature');
+  fs.mkdirSync(planDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(planDir, 'plan.md'),
+    '# Plan\n\nApproval Status: approved\n'
+  );
+  writePlanRuntimeArtifacts(planDir, { taskGraph: 'invalid' });
+
+  const hook = runHook(
+    '.claude/hooks/plan-approval-gate.cjs',
+    {
+      tool_name: 'Edit',
+      tool_input: {
+        file_path: path.join(tmpDir, 'src', 'app.ts')
+      }
+    },
+    tmpDir
+  );
+  const parsed = JSON.parse(hook.stdout);
+
+  assert.equal(hook.status, 0);
+  assert.equal(parsed.hookSpecificOutput.permissionDecision, 'deny');
+  assert.match(parsed.hookSpecificOutput.permissionDecisionReason, /missing `title`|blocking policy|taskDescription/i);
 });
 
 test('active plan sync records the latest plan.md path', () => {
@@ -345,6 +452,7 @@ test('plan approval gate uses the active plan instead of an unrelated approved p
   fs.mkdirSync(oldPlanDir, { recursive: true });
   fs.mkdirSync(newPlanDir, { recursive: true });
   fs.writeFileSync(path.join(oldPlanDir, 'plan.md'), '# Plan\n\nApproval Status: approved\n');
+  writePlanRuntimeArtifacts(oldPlanDir);
   fs.writeFileSync(path.join(newPlanDir, 'plan.md'), '# Plan\n\nApproval Status: pending\n');
   writeActivePlan(tmpDir, 'plans/new-feature/plan.md');
 
@@ -391,6 +499,7 @@ test('session state persists a workflow snapshot on Stop and replays it on start
   fs.mkdirSync(planDir, { recursive: true });
   fs.mkdirSync(strategyDir, { recursive: true });
   fs.writeFileSync(path.join(planDir, 'plan.md'), '# Plan\n\nApproval Status: approved\n');
+  writePlanRuntimeArtifacts(planDir);
   fs.writeFileSync(
     path.join(strategyDir, 'strategy-memo.md'),
     [
@@ -526,6 +635,58 @@ test('workflow reminder allows /eup-pm when strategy memo is ready', () => {
   assert.match(context, /PM intake may proceed/);
 });
 
+test('workflow reminder blocks /eup-implement until approved plan bundle is ready', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const planDir = path.join(tmpDir, 'plans', 'ready-brief');
+  fs.mkdirSync(planDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(planDir, 'plan.md'),
+    '# Plan\n\nApproval Status: approved\n'
+  );
+  writeActivePlan(tmpDir, 'plans/ready-brief/plan.md');
+
+  const hook = runHook(
+    '.claude/hooks/workflow-reminder.cjs',
+    {
+      prompt: '/eup-implement plans/ready-brief/plan.md'
+    },
+    tmpDir
+  );
+  const parsed = JSON.parse(hook.stdout);
+  const context = parsed.hookSpecificOutput.additionalContext;
+
+  assert.equal(hook.status, 0);
+  assert.match(context, /Implementation Gate/);
+  assert.match(context, /\/eup-implement is BLOCKED/);
+  assert.match(context, /task-graph\.json|ownership-matrix\.md/);
+});
+
+test('workflow reminder allows /eup-implement when approved plan bundle is ready', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const planDir = path.join(tmpDir, 'plans', 'ready-brief');
+  fs.mkdirSync(planDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(planDir, 'plan.md'),
+    '# Plan\n\nApproval Status: approved\n'
+  );
+  writePlanRuntimeArtifacts(planDir);
+  writeActivePlan(tmpDir, 'plans/ready-brief/plan.md');
+
+  const hook = runHook(
+    '.claude/hooks/workflow-reminder.cjs',
+    {
+      prompt: '/eup-implement plans/ready-brief/plan.md'
+    },
+    tmpDir
+  );
+  const parsed = JSON.parse(hook.stdout);
+  const context = parsed.hookSpecificOutput.additionalContext;
+
+  assert.equal(hook.status, 0);
+  assert.match(context, /Approved plan bundle ready/);
+  assert.match(context, /\/eup-implement may proceed/);
+});
+
 test('task created hook blocks incomplete team task packets', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-task-created-block-'));
 
@@ -543,6 +704,35 @@ test('task created hook blocks incomplete team task packets', () => {
 
   assert.equal(hook.status, 2);
   assert.match(hook.stderr, /missing required task packet fields/i);
+});
+
+test('task created hook blocks unknown owner roles', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-task-created-owner-'));
+
+  const hook = runHook(
+    '.claude/hooks/task-created-validator.cjs',
+    {
+      hook_event_name: 'TaskCreated',
+      team_name: 'implementation',
+      task_id: 'task-typo',
+      task_subject: 'Implement backend tracking',
+      task_description: [
+        'Phase: implementation',
+        'Owner Role: backend-enginer',
+        'Depends On: none',
+        'Artifacts:',
+        '- reports/debug.md',
+        'Acceptance Criteria:',
+        '- output saved',
+        'Validation:',
+        '- confirm artifact exists'
+      ].join('\n')
+    },
+    tmpDir
+  );
+
+  assert.equal(hook.status, 2);
+  assert.match(hook.stderr, /unknown Owner Role/i);
 });
 
 test('task created hook allows valid implementation task packets and records runtime state', () => {
@@ -590,6 +780,7 @@ test('marketing strategist cannot edit product source even with an approved plan
     path.join(planDir, 'plan.md'),
     '# Plan\n\nApproval Status: approved\n'
   );
+  writePlanRuntimeArtifacts(planDir);
 
   runHook(
     '.claude/hooks/subagent-context.cjs',
@@ -665,6 +856,7 @@ test('bash approval gate allows source mutations after active plan approval', ()
   const planDir = path.join(tmpDir, 'plans', 'feature');
   fs.mkdirSync(planDir, { recursive: true });
   fs.writeFileSync(path.join(planDir, 'plan.md'), '# Plan\n\nApproval Status: approved\n');
+  writePlanRuntimeArtifacts(planDir);
   writeActivePlan(tmpDir, 'plans/feature/plan.md');
 
   const hook = runHook(
@@ -684,11 +876,37 @@ test('bash approval gate allows source mutations after active plan approval', ()
   assert.equal(parsed.continue, true);
 });
 
+test('bash approval gate blocks source mutations when approved plan bundle is incomplete', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const planDir = path.join(tmpDir, 'plans', 'feature');
+  fs.mkdirSync(planDir, { recursive: true });
+  fs.writeFileSync(path.join(planDir, 'plan.md'), '# Plan\n\nApproval Status: approved\n');
+  writeActivePlan(tmpDir, 'plans/feature/plan.md');
+
+  const hook = runHook(
+    '.claude/hooks/bash-approval-gate.cjs',
+    {
+      cwd: tmpDir,
+      tool_name: 'Bash',
+      tool_input: {
+        command: buildApplyPatchCommand('src/app.ts')
+      }
+    },
+    tmpDir
+  );
+  const parsed = JSON.parse(hook.stdout);
+
+  assert.equal(hook.status, 0);
+  assert.equal(parsed.hookSpecificOutput.permissionDecision, 'deny');
+  assert.match(parsed.hookSpecificOutput.permissionDecisionReason, /task-graph\.json|ownership-matrix\.md/i);
+});
+
 test('bash approval gate respects non-engineering artifact scope', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
   const planDir = path.join(tmpDir, 'plans', 'feature');
   fs.mkdirSync(planDir, { recursive: true });
   fs.writeFileSync(path.join(planDir, 'plan.md'), '# Plan\n\nApproval Status: approved\n');
+  writePlanRuntimeArtifacts(planDir);
   writeActivePlan(tmpDir, 'plans/feature/plan.md');
 
   runHook(
@@ -758,6 +976,7 @@ test('qa tester can edit test files after approval', () => {
     path.join(planDir, 'plan.md'),
     '# Plan\n\nApproval Status: approved\n'
   );
+  writePlanRuntimeArtifacts(planDir);
 
   runHook(
     '.claude/hooks/subagent-context.cjs',
@@ -793,6 +1012,7 @@ test('qa tester cannot edit product source after approval', () => {
     path.join(planDir, 'plan.md'),
     '# Plan\n\nApproval Status: approved\n'
   );
+  writePlanRuntimeArtifacts(planDir);
 
   runHook(
     '.claude/hooks/subagent-context.cjs',
@@ -916,6 +1136,8 @@ test('settings enable agent teams runtime, status line, and secret deny rules', 
 
   assert.equal(settings.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS, '1');
   assert.match(settings.statusLine.command, /\.claude\/statusline\.cjs/);
+  assert.ok(Array.isArray(settings.permissions.allow));
+  assert.ok(settings.permissions.allow.includes('WebFetch'));
   assert.ok(Array.isArray(settings.permissions.deny));
   assert.ok(settings.permissions.deny.includes('Read(./.env)'));
   assert.ok(settings.permissions.deny.includes('Read(./.env.*)'));
@@ -1402,6 +1624,7 @@ test('workflow e2e smoke: research -> strategy -> plan -> approval -> implementa
       ''
     ].join('\n')
   );
+  writePlanRuntimeArtifacts(path.join(tmpDir, 'plans', 'launch-workflow'));
 
   const blockedImplementation = runHook(
     '.claude/hooks/plan-approval-gate.cjs',
@@ -1447,6 +1670,7 @@ test('workflow e2e smoke: research -> strategy -> plan -> approval -> implementa
   );
   const approvedContext = JSON.parse(approvedSession.stdout).hookSpecificOutput.additionalContext;
   assert.match(approvedContext, /Current plan approval: approved/);
+  assert.match(approvedContext, /Current task graph: plans\/launch-workflow\/task-graph\.json/);
 
   runHook(
     '.claude/hooks/subagent-context.cjs',
@@ -1518,6 +1742,8 @@ test('workflow e2e smoke: research -> strategy -> plan -> approval -> implementa
   assert.equal(fs.existsSync(path.join(tmpDir, 'reports', 'research', '20260331-demo', 'research-summary.md')), true);
   assert.equal(fs.existsSync(path.join(tmpDir, 'reports', 'strategy', '20260331-demo', 'strategy-memo.md')), true);
   assert.equal(fs.existsSync(path.join(tmpDir, 'plans', 'launch-workflow', 'plan.md')), true);
+  assert.equal(fs.existsSync(path.join(tmpDir, 'plans', 'launch-workflow', 'task-graph.json')), true);
+  assert.equal(fs.existsSync(path.join(tmpDir, 'plans', 'launch-workflow', 'ownership-matrix.md')), true);
   assert.equal(fs.existsSync(path.join(tmpDir, 'src', 'app.ts')), true);
   assert.equal(fs.existsSync(path.join(tmpDir, 'tests', 'app.test.ts')), true);
 });

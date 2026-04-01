@@ -7,6 +7,7 @@ const {
   normalizeRelative,
   readApprovalState,
   readHookStdin,
+  summarizePlanBundleIssues,
   validateAgentEditPath
 } = require('./workflow-utils.cjs');
 
@@ -136,12 +137,18 @@ try {
       continue;
     }
 
-    if (!approval.approved) {
-      process.stdout.write(
-        deny(
+    if (!approval.implementationReady) {
+      const reason = approval.approvedPlan
+        ? (
+          'Shell-based file mutations are blocked until the active approved plan is implementation-ready. ' +
+          `Missing or invalid runtime artifacts: ${summarizePlanBundleIssues(approval).join('; ') || 'task-graph.json and ownership-matrix.md'}.`
+        )
+        : (
           'Shell-based file mutations are blocked until the active plan (or the only plan in plans/**/plan.md) ' +
           'contains `Approval Status: approved`. Use planning first, then implement.'
-        )
+        );
+      process.stdout.write(
+        deny(reason)
       );
       process.exit(0);
     }

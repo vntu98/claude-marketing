@@ -5,6 +5,9 @@
     "EUP_COMPANY_MODE": "agent-teams"
   },
   "permissions": {
+    "allow": [
+      "WebFetch"
+    ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",

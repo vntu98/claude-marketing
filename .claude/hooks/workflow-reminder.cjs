@@ -3,15 +3,19 @@
 
 const {
   buildWorkflowSummary,
+  normalizeRelative,
+  readApprovalState,
   readStrategyState,
   readHookStdin,
-  responseWithContext
+  responseWithContext,
+  summarizePlanBundleIssues
 } = require('./workflow-utils.cjs');
 
 try {
   const payload = readHookStdin();
   const projectRoot = process.env.CLAUDE_PROJECT_DIR || process.cwd();
   const strategy = readStrategyState(projectRoot);
+  const approval = readApprovalState(projectRoot);
   const prompt =
     payload.prompt ||
     payload.user_prompt ||
@@ -19,6 +23,7 @@ try {
     '';
 
   const looksLikeImplementation = /\b(build|implement|code|ship|deploy|refactor|fix|feature|api|component)\b/i.test(prompt);
+  const looksLikeImplementCommand = /\/eup-implement\b|approved plan|dispatch engineers|implementation team/i.test(prompt);
   const looksLikePmIntake = /\/eup-pm\b|\/eup-dev-intake\b|project-manager|project manager|dev intake|task breakdown|technical backlog|sprint planning/i.test(prompt);
   const header = looksLikeImplementation
     ? '## Implementation Reminder'
@@ -42,6 +47,29 @@ try {
         `channel priorities, priority experiments, measurement notes, concrete dev asks, PM intake packet, ` +
         `and role handoffs.${missingDetails}\n` +
         `Next handoff: marketing-strategist.\n\n`;
+    }
+  }
+
+  if (looksLikeImplementCommand) {
+    if (approval.implementationReady && approval.activePlan) {
+      preface =
+        `## Implementation Gate\n` +
+        `Approved plan bundle ready: ${normalizeRelative(projectRoot, approval.activePlan)}.\n` +
+        `/eup-implement may proceed using the saved task graph and ownership matrix.\n\n`;
+    } else {
+      const blockers = approval.approvedPlan
+        ? summarizePlanBundleIssues(approval)
+        : ['active plan approval'];
+      const planLabel = approval.activePlan
+        ? normalizeRelative(projectRoot, approval.activePlan)
+        : 'plans/<slug>/plan.md';
+      preface =
+        `## Implementation Gate\n` +
+        `/eup-implement is BLOCKED until the active plan bundle is ready.\n` +
+        `Target plan: ${planLabel}.\n` +
+        `Required state: \`Approval Status: approved\`, valid \`task-graph.json\`, and non-empty \`ownership-matrix.md\`.\n` +
+        `Current blockers: ${blockers.join('; ')}.\n` +
+        `Next handoff: implementation-planner or user approval.\n\n`;
     }
   }
 
