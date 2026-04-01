@@ -40,6 +40,10 @@ function buildAgentReminder(agentName) {
     return 'Implementation task packets must include File Ownership and `Isolation: worktree`. You may edit only the assigned files. If the plan is not approved, stop and report BLOCKED.';
   }
 
+  if (['codebase-scout', 'technical-brainstormer', 'quality-reviewer'].includes(normalized)) {
+    return 'Read-only team lanes must save any requested handoff artifact, send the summary to the lead, and call TaskUpdate so the owned task is completed or blocked before stopping. Do not rely on chat delivery alone.';
+  }
+
   if (/(reviewer|tester)/.test(normalized)) {
     return 'Report concrete findings first. Task packets should name a Read Scope or explicit validation scope. Do not wave through missing tests or unresolved blockers.';
   }
@@ -92,7 +96,7 @@ try {
         }`,
         `Active strategy artifact: ${activeStrategyLabel}`,
         `Active plan artifact: ${activePlanLabel}`,
-        'Team mode: claim work via TaskUpdate, respect file ownership, and use SendMessage for direct coordination.'
+        'Team mode: claim work via TaskUpdate, respect file ownership, and use SendMessage for direct coordination. Before stopping, mark owned tasks completed or blocked via TaskUpdate; do not rely on chat delivery alone.'
       ].join('\n')
     : '';
 

@@ -1,0 +1,861 @@
+{
+  "meta": {
+    "project": "bilingual-video-english",
+    "version": "1.0",
+    "created": "2026-04-01",
+    "author": "implementation-planner",
+    "totalTasks": 43,
+    "phases": [0, 1, 2]
+  },
+  "tasks": [
+    {
+      "id": "T-001",
+      "title": "Setup Firebase SDK + GA4 property connection",
+      "devAsk": "DEV-01",
+      "phase": 0,
+      "owner": "mobile-engineer",
+      "dependencies": [],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "Firebase SDK installed in Flutter project",
+        "GA4 property connected and receiving events",
+        "Debug mode configured for internal traffic exclusion"
+      ],
+      "files": [
+        "mobile/pubspec.yaml",
+        "mobile/lib/core/analytics/firebase_config.dart",
+        "mobile/android/app/google-services.json",
+        "mobile/ios/Runner/GoogleService-Info.plist"
+      ]
+    },
+    {
+      "id": "T-002",
+      "title": "Implement 8 GA4 events P1 + 5 conversion events",
+      "devAsk": "DEV-01",
+      "phase": 0,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-001"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "8 P1 events firing: video_preview_started, first_word_lookup, first_word_saved, first_review_completed, paywall_viewed, subscription_started, streak_day_achieved, push_notification_opened",
+        "5 conversion events marked: purchase_completed, trial_started, aha_moment_reached, first_video_watched, signup_completed",
+        "All events have correct parameters per tracking plan",
+        "Events visible in GA4 DebugView"
+      ],
+      "files": [
+        "mobile/lib/core/analytics/analytics_service.dart",
+        "mobile/lib/core/analytics/event_definitions.dart",
+        "mobile/lib/core/analytics/conversion_events.dart"
+      ]
+    },
+    {
+      "id": "T-003",
+      "title": "iOS ATT handling + server-side event fallback",
+      "devAsk": "DEV-01",
+      "phase": 0,
+      "owner": "backend-engineer",
+      "dependencies": ["T-001"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "iOS ATT prompt implemented correctly",
+        "Server-side events fallback for users who decline tracking",
+        "SKAdNetwork configuration for paid UA attribution"
+      ],
+      "files": [
+        "server/src/analytics/server-events.ts",
+        "server/src/analytics/att-fallback.ts",
+        "mobile/ios/Runner/Info.plist"
+      ]
+    },
+    {
+      "id": "T-004",
+      "title": "Funnel visualization setup + DebugView validation",
+      "devAsk": "DEV-01",
+      "phase": 0,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-002"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "Funnel Explore report configured: Install -> Signup -> First Video -> Word Saved -> Review -> Subscription",
+        "All 8 P1 events verified in DebugView with correct parameters",
+        "UTM convention from channel-scorecard.md applied"
+      ],
+      "files": [
+        "mobile/lib/core/analytics/utm_config.dart"
+      ]
+    },
+    {
+      "id": "T-005",
+      "title": "YouTube caption extraction service",
+      "devAsk": "DEV-02",
+      "phase": 0,
+      "owner": "backend-engineer",
+      "dependencies": [],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Extract EN captions from YouTube videos via youtube_explode_dart",
+        "Detect whether video has manual captions, auto-captions, or no captions",
+        "Return structured subtitle data with timestamps",
+        "Handle rate limits and errors gracefully"
+      ],
+      "files": [
+        "server/src/subtitle/caption-extractor.ts",
+        "server/src/subtitle/youtube-client.ts",
+        "server/src/subtitle/types.ts"
+      ]
+    },
+    {
+      "id": "T-006",
+      "title": "AutoDub detection + Whisper API fallback pipeline",
+      "devAsk": "DEV-02",
+      "phase": 0,
+      "owner": "backend-engineer",
+      "dependencies": ["T-005"],
+      "effort": "L",
+      "acceptanceCriteria": [
+        "Detect YouTube AutoDub by comparing audio language metadata vs expected EN",
+        "When captions missing or AutoDub detected, send audio to Whisper API for EN transcription",
+        "Whisper API integration with retry and timeout handling",
+        "Fallback chain: manual captions > auto captions > Whisper API > error state",
+        "Latency <15s for a 10-minute video via Whisper"
+      ],
+      "files": [
+        "server/src/subtitle/autodub-detector.ts",
+        "server/src/subtitle/whisper-client.ts",
+        "server/src/subtitle/subtitle-pipeline.ts"
+      ]
+    },
+    {
+      "id": "T-007",
+      "title": "Google Cloud Translation EN-VI integration + caching",
+      "devAsk": "DEV-02",
+      "phase": 0,
+      "owner": "backend-engineer",
+      "dependencies": ["T-005"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "EN subtitle segments translated to VI via Google Cloud Translation API v3",
+        "Translation results cached by subtitle hash (avoid re-translating same content)",
+        "Post-processing rules for common EN dialogue patterns (contractions, slang, idioms)",
+        "Cache hit rate >60% for popular videos"
+      ],
+      "files": [
+        "server/src/translation/google-translate-client.ts",
+        "server/src/translation/translation-cache.ts",
+        "server/src/translation/post-processing-rules.ts"
+      ]
+    },
+    {
+      "id": "T-008",
+      "title": "100-video accuracy test + human QA coordination",
+      "devAsk": "DEV-02",
+      "phase": 0,
+      "owner": "backend-engineer",
+      "dependencies": ["T-006", "T-007"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "100 video test set curated (mix: 40 manual captions, 30 auto captions, 20 no captions, 10 AutoDub)",
+        "AI subtitle accuracy >=95% measured across test set",
+        ">=5 Vietnamese native speakers rate EN-VI translation as 'good' or 'very good'",
+        "Test results documented with per-category breakdown",
+        "If accuracy <95%, escalation plan activated"
+      ],
+      "files": [
+        "server/tests/subtitle/accuracy-test-suite.ts",
+        "server/tests/subtitle/test-video-set.json",
+        "docs/subtitle-qa-results.md"
+      ]
+    },
+    {
+      "id": "T-009",
+      "title": "PostgreSQL server schema design",
+      "devAsk": "INFRA",
+      "phase": 0,
+      "owner": "database-engineer",
+      "dependencies": [],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Schema for: users, videos, subtitles, translations, subscriptions, referrals tables",
+        "Indexes optimized for common queries (user lookup, video subtitle fetch, subscription status)",
+        "Schema reviewed by backend-engineer before migration",
+        "ERD diagram documented"
+      ],
+      "files": [
+        "server/src/db/schema.sql",
+        "server/src/db/indexes.sql",
+        "docs/server-schema-erd.md"
+      ]
+    },
+    {
+      "id": "T-010",
+      "title": "Drift/SQLite local schema design",
+      "devAsk": "INFRA",
+      "phase": 0,
+      "owner": "database-engineer",
+      "dependencies": [],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Drift schema for: saved_words, word_contexts, audio_clips, review_cards (FSRS params), user_preferences tables",
+        "SRS query optimized: due cards sorted by urgency",
+        "Migration strategy defined for future schema changes",
+        "Schema reviewed by mobile-engineer before implementation"
+      ],
+      "files": [
+        "mobile/lib/data/database/app_database.dart",
+        "mobile/lib/data/database/tables.dart",
+        "mobile/lib/data/database/daos/"
+      ]
+    },
+    {
+      "id": "T-011",
+      "title": "Backend API project scaffolding",
+      "devAsk": "INFRA",
+      "phase": 0,
+      "owner": "backend-engineer",
+      "dependencies": [],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "Node.js/Express project with TypeScript",
+        "PostgreSQL connection pool configured",
+        "Environment config (.env handling for API keys)",
+        "Basic health check endpoint",
+        "Docker Compose for local dev (Node + PostgreSQL)"
+      ],
+      "files": [
+        "server/package.json",
+        "server/tsconfig.json",
+        "server/src/index.ts",
+        "server/src/config/env.ts",
+        "server/docker-compose.yml",
+        "server/Dockerfile"
+      ]
+    },
+    {
+      "id": "T-012",
+      "title": "Flutter app project scaffolding + CI/CD pipeline",
+      "devAsk": "INFRA",
+      "phase": 0,
+      "owner": "mobile-engineer",
+      "dependencies": [],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "Flutter project created with clean architecture structure",
+        "CI/CD pipeline (GitHub Actions or similar) for build + test",
+        "iOS + Android build configurations",
+        "Linting and formatting rules configured"
+      ],
+      "files": [
+        "mobile/pubspec.yaml",
+        "mobile/lib/main.dart",
+        "mobile/lib/core/",
+        "mobile/lib/features/",
+        ".github/workflows/mobile-ci.yml"
+      ]
+    },
+    {
+      "id": "T-013",
+      "title": "Video source abstraction layer",
+      "devAsk": "DEV-03",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-005"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "VideoSource interface supporting YouTube URLs and direct URLs",
+        "YouTube URL resolution via youtube_explode_dart (stream URL + metadata)",
+        "Direct URL passthrough for non-YouTube sources",
+        "Error handling for invalid/blocked URLs"
+      ],
+      "files": [
+        "mobile/lib/features/video/data/video_source.dart",
+        "mobile/lib/features/video/data/youtube_source.dart",
+        "mobile/lib/features/video/data/direct_url_source.dart"
+      ]
+    },
+    {
+      "id": "T-014",
+      "title": "Video player integration (video_player + platform players)",
+      "devAsk": "DEV-03",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-013"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "video_player playing resolved stream URLs on iOS (AVPlayer) and Android (ExoPlayer)",
+        "Playback controls: play/pause, seek, speed adjustment",
+        "Position listener for subtitle sync",
+        "PiP and background audio handled via platform channels"
+      ],
+      "files": [
+        "mobile/lib/features/video/presentation/video_player_widget.dart",
+        "mobile/lib/features/video/presentation/video_controls.dart",
+        "mobile/lib/features/video/domain/video_player_controller.dart"
+      ]
+    },
+    {
+      "id": "T-015",
+      "title": "Dual subtitle rendering (EN + VI overlay)",
+      "devAsk": "DEV-03",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-014", "T-007"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "EN and VI subtitle lines rendered as Flutter Text widgets over video",
+        "Subtitle timing synced with video position via addListener",
+        "Subtitle styling configurable (font size, opacity, position)",
+        "No frame drops during subtitle rendering at 60fps"
+      ],
+      "files": [
+        "mobile/lib/features/video/presentation/subtitle_overlay.dart",
+        "mobile/lib/features/video/presentation/subtitle_style.dart",
+        "mobile/lib/features/video/domain/subtitle_sync.dart"
+      ]
+    },
+    {
+      "id": "T-016",
+      "title": "Tap-to-translate popup",
+      "devAsk": "DEV-03",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-015"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Tap on any word in EN subtitle opens popup",
+        "Popup shows: word definition, pronunciation, example sentence in context",
+        "Popup appears in <300ms",
+        "Save button in popup triggers word save flow",
+        "first_word_lookup event fires on first tap"
+      ],
+      "files": [
+        "mobile/lib/features/video/presentation/tap_translate_popup.dart",
+        "mobile/lib/features/video/domain/word_lookup_service.dart"
+      ]
+    },
+    {
+      "id": "T-017",
+      "title": "Progressive subtitle modes (blur/delayed/target-only)",
+      "devAsk": "DEV-03",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-015"],
+      "effort": "L",
+      "acceptanceCriteria": [
+        "Mode 1 — Full dual: EN + VI visible simultaneously",
+        "Mode 2 — Blur VI: Vietnamese text blurred via BackdropFilter, revealed on tap",
+        "Mode 3 — Delayed reveal: VI appears 2-3s after EN line",
+        "Mode 4 — Target-only: Only EN subtitle visible",
+        "Mode switching does not interrupt video playback",
+        "Smooth animations between modes"
+      ],
+      "files": [
+        "mobile/lib/features/video/presentation/subtitle_modes/full_dual_mode.dart",
+        "mobile/lib/features/video/presentation/subtitle_modes/blur_mode.dart",
+        "mobile/lib/features/video/presentation/subtitle_modes/delayed_reveal_mode.dart",
+        "mobile/lib/features/video/presentation/subtitle_modes/target_only_mode.dart",
+        "mobile/lib/features/video/presentation/subtitle_modes/mode_controller.dart"
+      ]
+    },
+    {
+      "id": "T-018",
+      "title": "Subtitle mode preference persistence + subtitle_toggle event",
+      "devAsk": "DEV-03",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-017", "T-002"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "User's preferred subtitle mode persisted across sessions",
+        "subtitle_toggle GA4 event fires when mode is switched",
+        "Mode preference synced to local database"
+      ],
+      "files": [
+        "mobile/lib/features/settings/data/subtitle_preferences.dart"
+      ]
+    },
+    {
+      "id": "T-019",
+      "title": "Word save flow (word + context + audio clip + timestamp)",
+      "devAsk": "DEV-04",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-016", "T-010"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Save button in tap-to-translate popup stores: word, EN sentence, VI sentence, video_id, timestamp_start, timestamp_end",
+        "Saved word stored in local Drift database",
+        "first_word_saved GA4 event fires on first save",
+        "Word list accessible from home screen"
+      ],
+      "files": [
+        "mobile/lib/features/vocabulary/data/word_repository.dart",
+        "mobile/lib/features/vocabulary/domain/save_word_usecase.dart",
+        "mobile/lib/features/vocabulary/presentation/word_list_screen.dart"
+      ]
+    },
+    {
+      "id": "T-020",
+      "title": "On-device audio clip extraction (ffmpeg_kit_flutter)",
+      "devAsk": "DEV-04",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-014"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Extract 5-10s audio clip from video at word save timestamp",
+        "Audio stored as .opus file locally (~30-60KB per clip)",
+        "Extraction completes in <3s on mid-range device",
+        "Storage management: cleanup orphaned clips"
+      ],
+      "files": [
+        "mobile/lib/features/vocabulary/data/audio_clip_extractor.dart",
+        "mobile/lib/features/vocabulary/data/clip_storage_manager.dart"
+      ]
+    },
+    {
+      "id": "T-021",
+      "title": "FSRS SRS engine implementation (pure Dart)",
+      "devAsk": "DEV-04",
+      "phase": 1,
+      "owner": "backend-engineer",
+      "dependencies": [],
+      "effort": "L",
+      "acceptanceCriteria": [
+        "FSRS algorithm implemented in pure Dart (no external dependencies)",
+        "Supports: new card scheduling, review scheduling, interval calculation",
+        "Self-optimizing parameters based on user performance",
+        "Unit test coverage >=90%",
+        "20-30% fewer reviews than SM-2 for same retention rate"
+      ],
+      "files": [
+        "mobile/lib/features/review/domain/fsrs/fsrs_engine.dart",
+        "mobile/lib/features/review/domain/fsrs/fsrs_models.dart",
+        "mobile/lib/features/review/domain/fsrs/fsrs_parameters.dart",
+        "mobile/test/features/review/fsrs_engine_test.dart"
+      ]
+    },
+    {
+      "id": "T-022",
+      "title": "Review session API (due cards, answer, interval update)",
+      "devAsk": "DEV-04",
+      "phase": 1,
+      "owner": "backend-engineer",
+      "dependencies": ["T-021", "T-009"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "API to fetch due review cards sorted by urgency",
+        "Answer submission updates FSRS parameters and next review date",
+        "Daily review quota enforcement (20 words/day free tier)",
+        "Review stats: accuracy %, total reviewed, streak"
+      ],
+      "files": [
+        "mobile/lib/features/review/data/review_repository.dart",
+        "mobile/lib/features/review/domain/review_session_usecase.dart"
+      ]
+    },
+    {
+      "id": "T-023",
+      "title": "Review UI — video clip playback + flashcard + SRS controls",
+      "devAsk": "DEV-04",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-020", "T-022"],
+      "effort": "L",
+      "acceptanceCriteria": [
+        "Review screen shows video clip 5-10s at saved timestamp",
+        "Flashcard: show word -> reveal definition + context sentence",
+        "SRS answer buttons (Again, Hard, Good, Easy)",
+        "Session summary after completing all due cards",
+        "Review session works offline (local audio clips + Drift data)"
+      ],
+      "files": [
+        "mobile/lib/features/review/presentation/review_screen.dart",
+        "mobile/lib/features/review/presentation/flashcard_widget.dart",
+        "mobile/lib/features/review/presentation/review_summary.dart",
+        "mobile/lib/features/review/presentation/clip_player_widget.dart"
+      ]
+    },
+    {
+      "id": "T-024",
+      "title": "first_review_completed + aha_moment_reached event wiring",
+      "devAsk": "DEV-04",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-023", "T-002"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "first_review_completed event fires after first completed review session",
+        "aha_moment_reached event fires when user hits: 1 video >=70% + 5 words saved + 1 review in 72h",
+        "Events include correct parameters per tracking plan"
+      ],
+      "files": [
+        "mobile/lib/features/review/domain/activation_tracker.dart"
+      ]
+    },
+    {
+      "id": "T-025",
+      "title": "Guest preview flow (60s video + tap-to-translate)",
+      "devAsk": "DEV-05",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-014", "T-016"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Unauthenticated user can browse and select a video",
+        "Video plays with dual subtitles for up to 60 seconds",
+        "Tap-to-translate works without authentication",
+        "video_preview_started event fires",
+        "Clear visual indicator of remaining preview time"
+      ],
+      "files": [
+        "mobile/lib/features/onboarding/presentation/guest_preview_screen.dart",
+        "mobile/lib/features/onboarding/domain/preview_limiter.dart"
+      ]
+    },
+    {
+      "id": "T-026",
+      "title": "Auth gate at word save + Google/Apple OAuth",
+      "devAsk": "DEV-05",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-025"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Auth gate triggers only when user attempts to save a word",
+        "Google Sign-In and Apple Sign-In only (no email/password)",
+        "Entire signup flow completes in <=2 taps after decision",
+        "signup_started and signup_completed events fire correctly",
+        "After signup, saved word action completes automatically"
+      ],
+      "files": [
+        "mobile/lib/features/auth/presentation/auth_gate_screen.dart",
+        "mobile/lib/features/auth/data/auth_service.dart",
+        "mobile/lib/features/auth/data/google_auth_provider.dart",
+        "mobile/lib/features/auth/data/apple_auth_provider.dart"
+      ]
+    },
+    {
+      "id": "T-027",
+      "title": "Signup funnel events wiring",
+      "devAsk": "DEV-05",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-026", "T-002"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "video_preview_started, first_word_lookup, signup_started, signup_completed events all firing",
+        "Funnel drop-off visible in GA4 per step",
+        "A/B test infrastructure ready for EXP-01/02"
+      ],
+      "files": [
+        "mobile/lib/features/onboarding/domain/signup_funnel_tracker.dart"
+      ]
+    },
+    {
+      "id": "T-028",
+      "title": "RevenueCat SDK integration + IAP setup",
+      "devAsk": "DEV-08",
+      "phase": 1,
+      "owner": "backend-engineer",
+      "dependencies": [],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "RevenueCat SDK integrated in Flutter app",
+        "App Store IAP and Google Play Billing products configured",
+        "3 subscription products: Monthly 99K VND, Quarterly 240K VND, Annual 699K VND",
+        "Sandbox testing working on both platforms"
+      ],
+      "files": [
+        "server/src/billing/revenuecat-webhook.ts",
+        "server/src/billing/subscription-sync.ts",
+        "mobile/lib/features/billing/data/revenuecat_service.dart"
+      ]
+    },
+    {
+      "id": "T-029",
+      "title": "Subscription service (create/cancel/renew/status API)",
+      "devAsk": "DEV-08",
+      "phase": 1,
+      "owner": "backend-engineer",
+      "dependencies": ["T-028", "T-009"],
+      "effort": "L",
+      "acceptanceCriteria": [
+        "Subscription status API: active, expired, cancelled, grace period",
+        "Webhook handler for RevenueCat events (purchase, renewal, cancellation)",
+        "Subscription data stored in PostgreSQL",
+        "subscription_started event with plan_type fires correctly"
+      ],
+      "files": [
+        "server/src/billing/subscription-service.ts",
+        "server/src/billing/subscription-types.ts",
+        "server/src/billing/webhook-handler.ts"
+      ]
+    },
+    {
+      "id": "T-030",
+      "title": "Pricing screen UI (3 plans with comparison)",
+      "devAsk": "DEV-08",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-028"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Pricing page shows 3 plans: Monthly, Quarterly, Annual",
+        "Savings percentage displayed for Quarterly (20%) and Annual (40%)",
+        "Purchase flow connects to RevenueCat",
+        "Loading/error/success states handled"
+      ],
+      "files": [
+        "mobile/lib/features/billing/presentation/pricing_screen.dart",
+        "mobile/lib/features/billing/presentation/plan_card_widget.dart"
+      ]
+    },
+    {
+      "id": "T-031",
+      "title": "Quota tracker (video/review quota on home screen)",
+      "devAsk": "DEV-08",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-029"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Home screen shows remaining: videos/week and reviews/day",
+        "Quota resets on correct schedule",
+        "Quota enforcement: block action when limit reached, show upgrade prompt",
+        "Premium users see unlimited quota indicator"
+      ],
+      "files": [
+        "mobile/lib/features/billing/presentation/quota_widget.dart",
+        "mobile/lib/features/billing/domain/quota_tracker.dart"
+      ]
+    },
+    {
+      "id": "T-032",
+      "title": "Renewal reminder push notification (3 days before)",
+      "devAsk": "DEV-08",
+      "phase": 1,
+      "owner": "backend-engineer",
+      "dependencies": ["T-029"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "Push notification sent exactly 3 days before subscription auto-renewal",
+        "Notification includes: plan name, renewal date, amount",
+        "Notification deep links to subscription management screen"
+      ],
+      "files": [
+        "server/src/billing/renewal-reminder.ts",
+        "server/src/notifications/push-service.ts"
+      ]
+    },
+    {
+      "id": "T-033",
+      "title": "Cancel subscription flow (2 steps, no dark patterns)",
+      "devAsk": "DEV-08",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-029"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "Cancel button clearly visible in subscription settings",
+        "Cancellation completes in <=2 taps",
+        "No dark patterns: no hidden buttons, no guilt-trip copy, no confusing options",
+        "Confirmation shows: access until end of billing period"
+      ],
+      "files": [
+        "mobile/lib/features/billing/presentation/cancel_subscription_screen.dart"
+      ]
+    },
+    {
+      "id": "T-034",
+      "title": "Server-side PostgreSQL migration scripts",
+      "devAsk": "INFRA",
+      "phase": 1,
+      "owner": "database-engineer",
+      "dependencies": ["T-009"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Migration scripts for all server tables: users, videos, subtitles, translations, subscriptions, referrals",
+        "Up and down migrations for each change",
+        "Migration runner integrated into server startup",
+        "Seed data for development"
+      ],
+      "files": [
+        "server/src/db/migrations/",
+        "server/src/db/migration-runner.ts",
+        "server/src/db/seeds/"
+      ]
+    },
+    {
+      "id": "T-035",
+      "title": "Home screen UI (video search/browse + quota + streak)",
+      "devAsk": "INFRA",
+      "phase": 1,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-013", "T-031"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Home screen with: video search/paste URL, recent videos, quota display, streak counter",
+        "YouTube URL paste resolves video metadata and thumbnail",
+        "Navigation to video player, word list, review, settings"
+      ],
+      "files": [
+        "mobile/lib/features/home/presentation/home_screen.dart",
+        "mobile/lib/features/home/presentation/video_search_bar.dart",
+        "mobile/lib/features/home/presentation/recent_videos_list.dart"
+      ]
+    },
+    {
+      "id": "T-036",
+      "title": "Push notification infrastructure (FCM)",
+      "devAsk": "INFRA",
+      "phase": 1,
+      "owner": "backend-engineer",
+      "dependencies": ["T-001"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "Firebase Cloud Messaging configured for iOS and Android",
+        "Server can send push notifications to specific users",
+        "Notification types: spaced_rep_reminder, streak_reminder, renewal_reminder",
+        "push_notification_opened event fires with notification_type"
+      ],
+      "files": [
+        "server/src/notifications/fcm-client.ts",
+        "server/src/notifications/notification-types.ts",
+        "mobile/lib/core/notifications/notification_handler.dart"
+      ]
+    },
+    {
+      "id": "T-037",
+      "title": "Paywall trigger service (4 types + pre-condition)",
+      "devAsk": "DEV-06",
+      "phase": 2,
+      "owner": "backend-engineer",
+      "dependencies": ["T-029", "T-022"],
+      "effort": "L",
+      "acceptanceCriteria": [
+        "4 trigger types: review_quota_exceeded, video_quota_exceeded, streak_7_days, re_engagement_3_days",
+        "Hard pre-condition: paywall NOT shown if user has saved <5 words",
+        "Each trigger returns appropriate copy variant",
+        "Trigger evaluation runs on relevant user actions"
+      ],
+      "files": [
+        "server/src/paywall/trigger-service.ts",
+        "server/src/paywall/trigger-types.ts",
+        "server/src/paywall/trigger-evaluator.ts",
+        "server/src/paywall/copy-variants.ts"
+      ]
+    },
+    {
+      "id": "T-038",
+      "title": "Paywall UI variants (4 copy versions + annual highlight)",
+      "devAsk": "DEV-06",
+      "phase": 2,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-037"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "4 paywall UI variants matching trigger types",
+        "Each variant has trigger-specific copy and value proposition",
+        "Annual plan highlighted with 'Chi 1.900 dong/ngay' framing",
+        "Smooth transition from trigger point to paywall screen"
+      ],
+      "files": [
+        "mobile/lib/features/billing/presentation/paywall_screen.dart",
+        "mobile/lib/features/billing/presentation/paywall_variants/"
+      ]
+    },
+    {
+      "id": "T-039",
+      "title": "paywall_viewed event with trigger_source parameter",
+      "devAsk": "DEV-06",
+      "phase": 2,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-038", "T-002"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "paywall_viewed event fires with trigger_source parameter",
+        "paywall_viewed -> subscription_started funnel measurable per trigger type",
+        "Staged rollout support (10% -> 50% -> 100%)"
+      ],
+      "files": [
+        "mobile/lib/features/billing/domain/paywall_analytics.dart"
+      ]
+    },
+    {
+      "id": "T-040",
+      "title": "Deep link generation service",
+      "devAsk": "DEV-07",
+      "phase": 2,
+      "owner": "backend-engineer",
+      "dependencies": [],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Generate shareable deep links encoding video_id + timestamp",
+        "Links resolve correctly on iOS (Universal Links) and Android (App Links)",
+        "Fallback to App Store / Play Store if app not installed",
+        "Link metadata includes video thumbnail for social preview"
+      ],
+      "files": [
+        "server/src/deeplink/link-generator.ts",
+        "server/src/deeplink/link-resolver.ts",
+        "server/src/deeplink/social-preview.ts"
+      ]
+    },
+    {
+      "id": "T-041",
+      "title": "Share UI + deep link handling (iOS + Android)",
+      "devAsk": "DEV-07",
+      "phase": 2,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-040"],
+      "effort": "M",
+      "acceptanceCriteria": [
+        "Share button on video player generates deep link",
+        "Native share sheet on iOS and Android",
+        "Incoming deep links open correct video at correct timestamp",
+        "invite_sent event fires on share"
+      ],
+      "files": [
+        "mobile/lib/features/sharing/presentation/share_button.dart",
+        "mobile/lib/features/sharing/data/deep_link_handler.dart",
+        "mobile/lib/features/sharing/domain/share_service.dart"
+      ]
+    },
+    {
+      "id": "T-042",
+      "title": "Deep link fallback (store redirect when not installed)",
+      "devAsk": "DEV-07",
+      "phase": 2,
+      "owner": "backend-engineer",
+      "dependencies": ["T-040"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "Deep links redirect to App Store (iOS) or Play Store (Android) if app not installed",
+        "Deferred deep link: after install, app opens correct video + timestamp",
+        "Attribution: referral source tracked through deferred deep link"
+      ],
+      "files": [
+        "server/src/deeplink/store-redirect.ts",
+        "server/src/deeplink/deferred-link.ts"
+      ]
+    },
+    {
+      "id": "T-043",
+      "title": "invite_sent + referral_converted event wiring + attribution",
+      "devAsk": "DEV-07",
+      "phase": 2,
+      "owner": "mobile-engineer",
+      "dependencies": ["T-041", "T-002"],
+      "effort": "S",
+      "acceptanceCriteria": [
+        "invite_sent event fires when user shares a clip",
+        "referral_converted event fires when referred user completes signup",
+        "Referred users tagged with acquisition source 'referral' in GA4",
+        "Referral attribution linked to inviter user_id"
+      ],
+      "files": [
+        "mobile/lib/features/sharing/domain/referral_tracker.dart"
+      ]
+    }
+  ]
+}

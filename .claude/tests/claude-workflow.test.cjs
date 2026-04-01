@@ -1184,6 +1184,41 @@ test('manual company orchestration skills exist and are manual-only', () => {
   }
 });
 
+test('market-cycle and dev-intake require team cleanup before creating a new team', () => {
+  const marketCycle = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-market-cycle', 'SKILL.md'),
+    'utf8'
+  );
+  const devIntake = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-dev-intake', 'SKILL.md'),
+    'utf8'
+  );
+
+  assert.match(marketCycle, /Before `TeamCreate`, check whether this lead session is already managing another team/i);
+  assert.match(marketCycle, /call `TeamDelete` on the old team first/i);
+  assert.match(marketCycle, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
+
+  assert.match(devIntake, /Before `TeamCreate`, check whether this lead session is already managing another team/i);
+  assert.match(devIntake, /call `TeamDelete` on the old team first/i);
+  assert.match(devIntake, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
+  assert.match(devIntake, /scout-findings\.md/i);
+  assert.match(devIntake, /technical-options\.md/i);
+  assert.match(devIntake, /call `TaskUpdate` so their assigned tasks are marked completed/i);
+});
+
+test('eup-research defaults to saving a full research package for direct command usage', () => {
+  const researchSkill = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-research', 'SKILL.md'),
+    'utf8'
+  );
+
+  assert.match(researchSkill, /do \*\*not\*\* wait for the user to choose a deliverable before producing output/i);
+  assert.match(researchSkill, /always create the full report package under `reports\/research\/YYYYMMDD-\[slug\]\/`/i);
+  assert.match(researchSkill, /Create a new folder at `reports\/research\/YYYYMMDD-\[slug\]\/`/i);
+  assert.match(researchSkill, /Write the minimum required files in the package before ending/i);
+  assert.doesNotMatch(researchSkill, /^Ask the user which deliverable\(s\) they need before generating output\.$/m);
+});
+
 test('subagent context injects team metadata when agent is a teammate', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-team-context-'));
   const homeDir = path.join(tmpDir, 'home');
@@ -1345,6 +1380,44 @@ test('teammate idle hook suggests unblocked work when artifacts are satisfied', 
   assert.match(parsed.hookSpecificOutput.additionalContext, /Unblocked tasks: #2 Prepare dev intake/);
 });
 
+test('teammate idle hook asks read-only teammates to close owned tasks instead of waiting silently', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-teammate-idle-readonly-'));
+  const homeDir = path.join(tmpDir, 'home');
+  fs.mkdirSync(homeDir, { recursive: true });
+  writeTeamTask(homeDir, 'dev-intake', {
+    id: '2',
+    subject: 'Codebase mapping',
+    owner: 'scout-1',
+    status: 'in_progress',
+    taskDescription: [
+      'Phase: dev-intake',
+      'Owner Role: codebase-scout',
+      'Depends On: none',
+      'Read Scope:',
+      '- src/**',
+      'Acceptance Criteria:',
+      '- smallest safe change surface is named',
+      'Validation:',
+      '- report findings back to the lead'
+    ].join('\n')
+  });
+
+  const hook = runHook(
+    '.claude/hooks/teammate-idle-handler.cjs',
+    {
+      team_name: 'dev-intake',
+      teammate_name: 'scout-1'
+    },
+    tmpDir,
+    { HOME: homeDir }
+  );
+  const parsed = JSON.parse(hook.stdout);
+
+  assert.equal(hook.status, 0);
+  assert.match(parsed.hookSpecificOutput.additionalContext, /Owned read-only tasks still need closure/);
+  assert.match(parsed.hookSpecificOutput.additionalContext, /TaskUpdate/);
+});
+
 test('statusline renders active team, task progress, and plan state', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-statusline-'));
   fs.mkdirSync(path.join(tmpDir, '.claude', 'state'), { recursive: true });
@@ -1447,6 +1520,70 @@ test('subagent stop allows valid handoff contract', () => {
       ].join('\n')
     },
     projectRoot
+  );
+  const parsed = JSON.parse(hook.stdout);
+
+  assert.equal(hook.status, 0);
+  assert.equal(parsed.continue, true);
+});
+
+test('subagent stop blocks teammates that still own active team tasks', () => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-stop-active-task-home-'));
+  fs.mkdirSync(homeDir, { recursive: true });
+  writeTeamTask(homeDir, 'dev-intake', {
+    id: '2',
+    subject: 'Codebase mapping',
+    owner: 'scout-1',
+    status: 'in_progress'
+  });
+
+  const hook = runHook(
+    '.claude/hooks/subagent-stop.cjs',
+    {
+      session_id: 'stop-active-task',
+      agent_id: 'scout-1@dev-intake',
+      agent_type: 'codebase-scout',
+      last_assistant_message: [
+        '**Status:** DONE',
+        '**Summary:** Mapped the codebase.',
+        '**Next Handoff:** implementation-planner'
+      ].join('\n')
+    },
+    projectRoot,
+    { HOME: homeDir }
+  );
+  const parsed = JSON.parse(hook.stdout);
+
+  assert.equal(hook.status, 0);
+  assert.equal(parsed.decision, 'block');
+  assert.match(parsed.reason, /TaskUpdate/);
+  assert.match(parsed.reason, /Codebase mapping/);
+});
+
+test('subagent stop allows teammates to stop after owned tasks are completed', () => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-stop-completed-task-home-'));
+  fs.mkdirSync(homeDir, { recursive: true });
+  writeTeamTask(homeDir, 'dev-intake', {
+    id: '2',
+    subject: 'Codebase mapping',
+    owner: 'scout-1',
+    status: 'completed'
+  });
+
+  const hook = runHook(
+    '.claude/hooks/subagent-stop.cjs',
+    {
+      session_id: 'stop-completed-task',
+      agent_id: 'scout-1@dev-intake',
+      agent_type: 'codebase-scout',
+      last_assistant_message: [
+        '**Status:** DONE',
+        '**Summary:** Mapped the codebase.',
+        '**Next Handoff:** implementation-planner'
+      ].join('\n')
+    },
+    projectRoot,
+    { HOME: homeDir }
   );
   const parsed = JSON.parse(hook.stdout);
 

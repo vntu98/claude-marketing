@@ -10,6 +10,11 @@ const {
   summarizeTeamTasks,
   writeTeamRuntimeState
 } = require('./workflow-utils.cjs');
+const READ_ONLY_OWNER_ROLES = new Set([
+  'codebase-scout',
+  'technical-brainstormer',
+  'quality-reviewer'
+]);
 
 function asArray(value) {
   if (!value) {
@@ -31,6 +36,42 @@ function resolveArtifact(projectRoot, artifactPath) {
   return path.isAbsolute(artifactPath)
     ? artifactPath
     : path.join(projectRoot, artifactPath);
+}
+
+function parseOwnerRole(task) {
+  const direct = task?.ownerRole || task?.metadata?.ownerRole;
+  if (direct) {
+    return String(direct).trim().toLowerCase();
+  }
+
+  const description = String(
+    task?.taskDescription ||
+    task?.task_description ||
+    task?.description ||
+    ''
+  );
+  const match = description.match(/(^|\n)Owner Role:\s*([a-z0-9-]+)/i);
+  return match ? match[2].trim().toLowerCase() : '';
+}
+
+function isActiveTask(task) {
+  const status = String(task?.status || 'pending').trim().toLowerCase();
+  return !status || status === 'pending' || status === 'in_progress' || status === 'running' || status === 'claimed';
+}
+
+function collectOwnedReadOnlyTasks(tasks, teammateName) {
+  return tasks.filter((task) => {
+    const owner = task.owner || task.assignee || task?.metadata?.owner;
+    if (owner !== teammateName) {
+      return false;
+    }
+
+    if (!isActiveTask(task)) {
+      return false;
+    }
+
+    return READ_ONLY_OWNER_ROLES.has(parseOwnerRole(task));
+  });
 }
 
 function collectIdleGuards(projectRoot, tasks, teammateName) {
@@ -81,6 +122,7 @@ try {
   }
 
   const progress = summarizeTeamTasks(teamName);
+  const ownedReadOnlyTasks = collectOwnedReadOnlyTasks(tasks, teammateName);
   writeTeamRuntimeState(projectRoot, {
     activeTeam: teamName,
     idleTeammate: teammateName,
@@ -105,6 +147,13 @@ try {
     lines.push(`Assign work or message ${teammateName} to resume with the next available task.`);
   } else if ((progress.pending || 0) + (progress.inProgress || 0) === 0) {
     lines.push(`No remaining tasks. ${teammateName} can be shut down after result synthesis.`);
+  } else if (ownedReadOnlyTasks.length) {
+    const taskLabels = ownedReadOnlyTasks
+      .slice(0, 3)
+      .map((task) => `#${task.id} ${task.subject || task.title || 'Untitled task'}`)
+      .join(', ');
+    lines.push(`Owned read-only tasks still need closure: ${taskLabels}.`);
+    lines.push(`Ask ${teammateName} to save any requested handoff artifact, send the final findings, and mark the task completed or blocked via TaskUpdate before idling again.`);
   } else {
     lines.push('Remaining tasks are blocked or already assigned. Keep the teammate idle until dependencies clear.');
   }

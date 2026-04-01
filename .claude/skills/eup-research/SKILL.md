@@ -276,7 +276,15 @@ Depending on what the user needs, offer:
 5. **Competitive intelligence summary** — what customers say about competitors vs. you
 6. **Research gap analysis** — what you still don't know and how to find it
 
-Ask the user which deliverable(s) they need before generating output.
+For a direct `/eup-research <brief>` command, do **not** wait for the user to choose a deliverable before producing output.
+
+Default behavior:
+
+- always create the full report package under `reports/research/YYYYMMDD-[slug]/`
+- treat the package as the baseline deliverable even when the user gives only a short brief
+- if the user explicitly asks for an extra deliverable such as personas or a JTBD map, create that **in addition to** the report package, not instead of it
+
+Only ask follow-up questions when missing context would make the research materially wrong. Do not ask which deliverable they want if the command itself already implies a research run.
 
 ## Required Report Package
 
@@ -326,6 +334,14 @@ Rules for the report package:
 - If evidence is weak, say so explicitly in `research-summary.md`
 - All files saved under `reports/**` must be written in Vietnamese for headings, summaries, analysis, and recommendations
 - Verbatim customer quotes, product names, event names, and raw source labels may stay in the original language when preserving fidelity matters
+
+Execution rules for direct command usage:
+
+1. Derive a slug from the brief.
+2. Create a new folder at `reports/research/YYYYMMDD-[slug]/`.
+3. Write the minimum required files in the package before ending.
+4. If the brief mentions competitors, alternatives, positioning, or market scans, `competitor-landscape.md` is mandatory.
+5. End by reporting the saved folder path and the most important findings.
 
 Use [references/report-template.md](references/report-template.md) as the default structure.
 

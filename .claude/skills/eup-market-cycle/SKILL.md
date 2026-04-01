@@ -17,11 +17,13 @@ Turn a market brief into durable evidence under `reports/research/YYYYMMDD-[slug
 
 ## Runtime Rules
 
-1. Call `TeamCreate` before spawning teammates.
-2. If `TeamCreate` fails or is unavailable, stop and tell the user Agent Teams requires Claude Code CLI with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
-3. Keep the first wave to 3-5 teammates.
-4. All live-mutation marketing tools must run in `--dry-run` mode unless the user explicitly asks for a live action.
-5. The lead coordinates, monitors task progress, and synthesizes. Teammates own the artifacts they create.
+1. Before `TeamCreate`, check whether this lead session is already managing another team. If so, call `TeamDelete` on the old team first and confirm success before continuing.
+2. If `TeamDelete` fails, stop and tell the user which team is still active. Do not try to create a second team from the same lead session.
+3. Call `TeamCreate` only after the old team is fully deleted.
+4. If `TeamCreate` fails or is unavailable, stop and tell the user Agent Teams requires Claude Code CLI with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
+5. Keep the first wave to 3-5 teammates.
+6. All live-mutation marketing tools must run in `--dry-run` mode unless the user explicitly asks for a live action.
+7. The lead coordinates, monitors task progress, and synthesizes. Teammates own the artifacts they create.
 
 ## Default Team
 
@@ -85,18 +87,21 @@ Optional metadata may still be attached when helpful:
 
 ## Execution Sequence
 
-1. Derive `YYYYMMDD-[slug]` from the brief and create the team.
-2. Create evidence tasks:
+1. Derive `YYYYMMDD-[slug]` from the brief.
+2. If another team is still attached to this lead session, delete it with `TeamDelete` and verify the deletion succeeded before creating the new team.
+3. Create the new team.
+4. Create evidence tasks:
    - market and customer language research
    - competitor landscape and switching triggers
    - GA4 / channel analysis using `tools/ga4.js`, `tools/google-search-console.js`, `tools/semrush.js`, or ads tools when credentials exist
    - optional SEO or growth support lane
    - each task description must declare `Phase`, `Owner Role`, `Depends On`, named `Artifacts`, `Acceptance Criteria`, and `Validation`
-3. Spawn teammates using the project agent definitions by name.
-4. Monitor `TaskCompleted` and `TeammateIdle`. Reassign only when tasks are truly independent.
-5. After evidence tasks complete, dispatch `marketing-strategist` to synthesize `strategy-memo.md`.
-6. Shut down teammates after all required artifacts exist and the strategy memo is saved.
-7. Report the saved research folder, strategy memo path, and the next recommended handoff.
+5. Spawn teammates using the project agent definitions by name.
+6. Monitor `TaskCompleted` and `TeammateIdle`. Reassign only when tasks are truly independent.
+7. After evidence tasks complete, dispatch `marketing-strategist` to synthesize `strategy-memo.md`.
+8. After all required artifacts exist and the strategy memo is saved, delete the team with `TeamDelete`.
+9. Only report `team disbanded`, `team fully disbanded`, or equivalent language after `TeamDelete` returns success.
+10. Report the saved research folder, strategy memo path, and the next recommended handoff.
 
 ## Strategy Memo Requirements
 
@@ -117,3 +122,4 @@ The strategist output must include:
 - Do not let the lead silently do all the work itself.
 - Do not run more teammates than the task graph justifies.
 - Do not publish or mutate external systems without explicit user approval.
+- Do not say a team is disbanded just because teammates look idle; require successful `TeamDelete`.
