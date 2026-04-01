@@ -3,7 +3,7 @@ name: eup-pm
 description: "When the user wants to orchestrate dev work, break down a marketing strategy into technical tasks, track project progress, or coordinate the dev team. Also use when the user mentions 'project plan,' 'task breakdown,' 'sprint planning,' 'dev tasks,' 'what should we build,' 'prioritize tasks,' 'project status,' 'coordinate development,' 'assign tasks,' 'roadmap,' or 'backlog.' This is the entry point for turning marketing strategies into technical execution."
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Agent
 metadata:
-  version: 2.1.0
+  version: 2.2.0
 ---
 
 # Project Manager
@@ -19,10 +19,21 @@ Read these inputs when available:
 1. `.claude/eup-context.md`
 2. latest research artifacts under `reports/research/**`
 3. `tracking-plan.md`
-4. current strategy memo or marketing brief
+4. saved strategy memo under `reports/strategy/**/strategy-memo.md`
 5. latest relevant `plans/**/plan.md`
 
 If key context is missing, ask only for the gap that blocks scoping.
+
+## Blocking Prerequisite
+
+`/eup-pm` requires a saved strategy memo at `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md`.
+
+If that memo is missing, or it does not include target audience, positioning, channel priorities, priority experiments, measurement notes, concrete dev asks, PM intake packet, and role handoffs:
+
+- stop immediately
+- do not scope directly from raw research
+- return `BLOCKED`
+- hand back to `marketing-strategist`
 
 ---
 
@@ -72,6 +83,8 @@ Use these rules every time:
 6. `quality-reviewer` runs before `qa-tester`.
 7. `devops-engineer` acts only after review, testing, and explicit ship/go-live instruction.
 
+If the strategy gate is missing or incomplete, none of the routing above may proceed.
+
 If the user wants to move fast, shorten the plan, not the workflow.
 
 ---
@@ -83,6 +96,11 @@ Produce a brief that the main session/controller can execute without reinterpret
 ### Required Sections
 
 ```markdown
+## Strategy Gate
+- Strategy memo: [path or missing]
+- Strategy status: ready / incomplete / missing / ambiguous
+- Missing sections: [list or none]
+
 ## Recommended Next Steps
 1. [agent] — [why now]
 2. [agent] — [why now]
@@ -122,6 +140,7 @@ Produce a brief that the main session/controller can execute without reinterpret
 End with:
 
 - which agent should act next
+- whether the workflow is blocked on strategy memo completion
 - whether the workflow is blocked on user approval
 - which tasks can run together after approval
 - which engineer packets the controller should dispatch immediately after approval
@@ -144,6 +163,7 @@ If the user asks for project status:
 ## Anti-Patterns
 
 - Do not skip planning because the task looks small.
+- Do not accept raw research as PM-ready intake when no saved strategy memo exists.
 - Do not assign overlapping file ownership.
 - Do not claim agents were spawned if they were not.
 - Do not mix PM output with implementation details better owned by engineering.

@@ -90,11 +90,13 @@ social-media-manager + seo-specialist + revops-manager + growth-manager (when re
 
 1. Run `/eup-context` first — skills and agents read `.claude/eup-context.md`
 2. Marketing evidence flows through `market-researcher` → `competitor-analyst` → `ga4-analyst` → `marketing-strategist`
-3. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` and that plan becomes the active plan automatically
-4. No source-code implementation before the user explicitly approves the active plan
-5. The main session orchestrates subagents; subagents report back and do not recursively spawn more subagents
-6. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files.
-7. Each implementation agent owns distinct files — zero overlap
+3. `marketing-strategist` must save the handoff artifact at `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md` before `/eup-pm` intake starts
+4. `/eup-pm` is blocked until that saved strategy memo is complete
+5. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` and that plan becomes the active plan automatically
+6. No source-code implementation before the user explicitly approves the active plan
+7. The main session orchestrates subagents; subagents report back and do not recursively spawn more subagents
+8. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files.
+9. Each implementation agent owns distinct files — zero overlap
 
 ## Senior Company Rule
 

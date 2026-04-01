@@ -68,7 +68,7 @@ MARKETING                                               DEV
        ↓
 market-researcher + competitor-analyst + ga4-analyst
        ↓
-/eup-strategy (marketing-strategist)
+/eup-strategy (marketing-strategist, save strategy memo)
        ↓
 /eup-social-content         ┐
 /eup-seo-audit             │
@@ -152,15 +152,16 @@ market-researcher + competitor-analyst + ga4-analyst
 2. /eup-research            → collect learner pain points and competitor language
 3. /eup-analytics           → define or update GA4 tracking plan
 4. /eup-signup-optimization → tighten acquisition flow
-5. /eup-pm                  → break into dev tasks
-6. /eup-plan                → design architecture → ⛔ you approve
-7. main session delegates approved work:
+5. /eup-strategy            → save strategy memo with positioning, experiments, and dev asks
+6. /eup-pm                  → break strategy into dev tasks
+7. /eup-plan                → design architecture → ⛔ you approve
+8. main session delegates approved work:
    - database-engineer: growth and event schema
    - frontend-engineer: landing page and onboarding UI
    - backend-engineer: signup API and tracking endpoints
-8. /eup-pm with the approved plan → orchestrated implementation
-9. eup-review + eup-test → quality gates
-10. /eup-devops          → deploy only when asked
+9. /eup-pm with the approved plan → orchestrated implementation
+10. eup-review + eup-test → quality gates
+11. /eup-devops          → deploy only when asked
 ```
 
 ## Workflow Files

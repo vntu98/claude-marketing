@@ -12,7 +12,8 @@ All roles in this workflow operate at a senior or staff-level bar. Outputs shoul
 ## 2. Strategy Synthesis
 
 - `marketing-strategist` merges discovery outputs into a strategy memo.
-- The strategy memo must contain: target audience, positioning, channel priorities, experiments, and concrete dev asks.
+- The saved handoff artifact is `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md`.
+- The strategy memo must contain: target audience, positioning, channel priorities, priority experiments, measurement notes, concrete dev asks, PM intake packet, and role handoffs.
 
 ## 3. Distribution and Ops Support
 
@@ -23,7 +24,8 @@ All roles in this workflow operate at a senior or staff-level bar. Outputs shoul
 
 ## 4. Technical Intake
 
-- `project-manager` converts the strategy memo into backlog items, dependencies, and file ownership.
+- `project-manager` converts the saved strategy memo into backlog items, dependencies, and file ownership.
+- `project-manager` is blocked until a complete `reports/strategy/**/strategy-memo.md` exists.
 - `codebase-scout` maps the existing codebase before planning or implementation, usually through `/eup-scout`.
 - `technical-brainstormer` evaluates non-obvious technical options and recommends one path.
 

@@ -3,9 +3,9 @@ name: eup-strategy
 description: When the user wants to turn research, competitor intel, channel data, and business goals into a focused marketing strategy. Also use when the user mentions "marketing strategy," "go-to-market," "positioning," "channel priorities," "content strategy," "what should we do next," "editorial calendar," "growth plan," "experiments," "GTM plan," "how should we market this," or "what content should we create." Use this for synthesis and prioritization, not just writing individual assets. For writing assets, see eup-copywriting. For SEO/topic validation, pair with eup-research. For social execution, see eup-social-content.
 context: fork
 agent: marketing-strategist
-allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Write, Edit
 metadata:
-  version: 1.2.0
+  version: 1.3.0
 ---
 
 # Marketing Strategy
@@ -25,6 +25,12 @@ Read these first when they exist:
 Do not build strategy from assumptions when the evidence already exists in the repo.
 
 Use [references/strategy-memo-template.md](references/strategy-memo-template.md) as the default output structure for the company workflow.
+
+When the strategy is meant to feed PM intake, planning, or automation, save it to:
+
+`reports/strategy/YYYYMMDD-[slug]/strategy-memo.md`
+
+This saved memo is the required gate before `/eup-pm` may scope implementation work.
 
 ---
 
@@ -68,6 +74,7 @@ When this skill is used inside the company workflow, your output must include:
 5. **Measurement notes** — KPI owner, instrumentation gaps, and success criteria
 6. **Concrete dev asks** — landing pages, tracking, CMS, automation, workflow, or product changes needed from engineering
 7. **Role handoffs** — what `social-media-manager`, `seo-specialist`, `revops-manager`, `growth-manager`, and `project-manager` should do next, if relevant
+8. **PM intake packet** — scope, user flow, dependencies, risks, and tracking needs that `project-manager` can convert into backlog work without reinterpretation
 
 Rules:
 
@@ -75,6 +82,8 @@ Rules:
 - Call out confidence level and assumptions when evidence is weak.
 - Separate quick wins from heavier bets.
 - If content is a priority channel, add the content appendix described below.
+- If PM, planning, or implementation is the next handoff, save the memo under `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md` before ending.
+- Do not hand off to `project-manager` from an in-message-only strategy when a durable artifact is required for workflow automation.
 
 ---
 
@@ -176,6 +185,7 @@ When creating strategy in the company workflow, provide:
 - top experiments
 - measurement notes
 - concrete dev asks
+- PM intake packet
 
 ### 2. Role Handoffs
 - what marketing ops or specialist roles should do next

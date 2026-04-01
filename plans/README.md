@@ -2,6 +2,8 @@
 
 Place implementation plans under `plans/<slug>/plan.md`.
 
+`/eup-plan` should start only after a saved strategy memo exists under `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md` and `/eup-pm` has turned it into backlog/scoping output.
+
 Every plan folder should contain:
 
 - `plan.md`

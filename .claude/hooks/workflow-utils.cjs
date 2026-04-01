@@ -8,6 +8,7 @@ const PLAN_APPROVED_PATTERN = /^\s*approval status\s*:\s*approved\s*$/im;
 const PLAN_PENDING_PATTERN = /^\s*approval status\s*:\s*pending\s*$/im;
 const AGENT_SESSION_STATE_FILE = path.join('.claude', 'state', 'agent-sessions.json');
 const ACTIVE_PLAN_STATE_FILE = path.join('.claude', 'state', 'active-plan.json');
+const ACTIVE_STRATEGY_STATE_FILE = path.join('.claude', 'state', 'active-strategy.json');
 const EXEMPT_PREFIXES = [
   '.claude/',
   'plans/',
@@ -24,6 +25,40 @@ const QA_TEST_FILE_PATTERNS = [
   /(^|\/)(tests?|e2e|playwright|cypress|spec)\//,
   /\.(test|spec)\.[^/]+$/i,
   /(^|\/)(vitest|jest|playwright|cypress)\.config\.[^/]+$/i
+];
+const STRATEGY_REQUIRED_SECTIONS = [
+  {
+    label: 'target audience',
+    pattern: /^##\s+.*(?:Target Audience|Đối Tượng Ưu Tiên).*$/im
+  },
+  {
+    label: 'positioning',
+    pattern: /^##\s+.*(?:Positioning|Định Vị).*$/im
+  },
+  {
+    label: 'channel priorities',
+    pattern: /^##\s+.*(?:Channel Priorities|Ưu Tiên Kênh).*$/im
+  },
+  {
+    label: 'priority experiments',
+    pattern: /^##\s+.*(?:Priority Experiments|Thí Nghiệm Ưu Tiên).*$/im
+  },
+  {
+    label: 'measurement notes',
+    pattern: /^##\s+.*(?:Measurement Notes|Ghi Chú Đo Lường).*$/im
+  },
+  {
+    label: 'concrete dev asks',
+    pattern: /^##\s+.*(?:Concrete Dev Asks|Yêu Cầu Cho Dev).*$/im
+  },
+  {
+    label: 'PM intake packet',
+    pattern: /^##\s+.*(?:PM Intake Packet|Gói Bàn Giao PM).*$/im
+  },
+  {
+    label: 'role handoffs',
+    pattern: /^##\s+.*(?:Role Handoffs|Bàn Giao Vai Trò).*$/im
+  }
 ];
 const AGENT_EDIT_POLICIES = {
   'market-researcher': {
@@ -148,6 +183,13 @@ function listPlanFiles(projectRoot) {
   );
 }
 
+function listStrategyMemoFiles(projectRoot) {
+  return walk(
+    path.join(projectRoot, 'reports', 'strategy'),
+    (fullPath) => path.basename(fullPath).toLowerCase() === 'strategy-memo.md'
+  );
+}
+
 function matchApprovalState(planFile) {
   const content = safeRead(planFile) || '';
   return {
@@ -160,10 +202,38 @@ function getActivePlanStatePath(projectRoot) {
   return path.join(projectRoot, ACTIVE_PLAN_STATE_FILE);
 }
 
+function getActiveStrategyStatePath(projectRoot) {
+  return path.join(projectRoot, ACTIVE_STRATEGY_STATE_FILE);
+}
+
 function readActivePlan(projectRoot) {
   const state = readJson(getActivePlanStatePath(projectRoot));
   const relativePath = typeof state.planPath === 'string'
     ? state.planPath.trim().replace(/\\/g, '/')
+    : '';
+
+  if (!relativePath) {
+    return {
+      exists: false,
+      relativePath: null,
+      absolutePath: null,
+      updatedAt: null
+    };
+  }
+
+  const absolutePath = path.join(projectRoot, relativePath);
+  return {
+    exists: fs.existsSync(absolutePath),
+    relativePath,
+    absolutePath,
+    updatedAt: state.updatedAt || null
+  };
+}
+
+function readActiveStrategy(projectRoot) {
+  const state = readJson(getActiveStrategyStatePath(projectRoot));
+  const relativePath = typeof state.memoPath === 'string'
+    ? state.memoPath.trim().replace(/\\/g, '/')
     : '';
 
   if (!relativePath) {
@@ -207,6 +277,82 @@ function setActivePlan(projectRoot, planFile) {
       updatedAt: new Date().toISOString()
     }, null, 2)}\n`
   );
+}
+
+function setActiveStrategy(projectRoot, strategyFile) {
+  if (!strategyFile) {
+    return;
+  }
+
+  const relativePath = normalizeRelative(projectRoot, strategyFile);
+  if (
+    relativePath.startsWith('..') ||
+    path.basename(relativePath).toLowerCase() !== 'strategy-memo.md' ||
+    !relativePath.startsWith('reports/strategy/')
+  ) {
+    return;
+  }
+
+  const statePath = getActiveStrategyStatePath(projectRoot);
+  fs.mkdirSync(path.dirname(statePath), { recursive: true });
+  fs.writeFileSync(
+    statePath,
+    `${JSON.stringify({
+      memoPath: relativePath,
+      updatedAt: new Date().toISOString()
+    }, null, 2)}\n`
+  );
+}
+
+function evaluateStrategyMemo(strategyFile) {
+  const content = safeRead(strategyFile) || '';
+  const missingSections = STRATEGY_REQUIRED_SECTIONS
+    .filter(({ pattern }) => !pattern.test(content))
+    .map(({ label }) => label);
+
+  return {
+    ready: missingSections.length === 0,
+    missingSections
+  };
+}
+
+function readStrategyState(projectRoot) {
+  const memoFiles = listStrategyMemoFiles(projectRoot);
+  const activeStrategy = readActiveStrategy(projectRoot);
+
+  if (activeStrategy.exists) {
+    const activeState = evaluateStrategyMemo(activeStrategy.absolutePath);
+    return {
+      ready: activeState.ready,
+      memoPath: activeStrategy.absolutePath,
+      activeStrategy: activeStrategy.absolutePath,
+      missingSections: activeState.missingSections,
+      totalMemos: memoFiles.length,
+      resolution: 'active'
+    };
+  }
+
+  if (memoFiles.length === 1) {
+    const onlyMemo = memoFiles[0];
+    const memoState = evaluateStrategyMemo(onlyMemo);
+    return {
+      ready: memoState.ready,
+      memoPath: onlyMemo,
+      activeStrategy: onlyMemo,
+      missingSections: memoState.missingSections,
+      totalMemos: 1,
+      resolution: 'single'
+    };
+  }
+
+  return {
+    ready: false,
+    memoPath: null,
+    activeStrategy: null,
+    missingSections: [],
+    totalMemos: memoFiles.length,
+    resolution: memoFiles.length ? 'ambiguous' : 'missing'
+  };
 }
 
 function readApprovalState(projectRoot) {
@@ -418,8 +564,12 @@ function validateAgentEditPath(projectRoot, payload, filePath) {
 
 function buildWorkflowSummary(projectRoot) {
   const approval = readApprovalState(projectRoot);
+  const strategy = readStrategyState(projectRoot);
   const activePlanLabel = approval.activePlan
     ? normalizeRelative(projectRoot, approval.activePlan)
+    : 'none';
+  const activeStrategyLabel = strategy.activeStrategy
+    ? normalizeRelative(projectRoot, strategy.activeStrategy)
     : 'none';
 
   let planStatus = 'missing';
@@ -433,15 +583,30 @@ function buildWorkflowSummary(projectRoot) {
       `approved=${approval.approvedCount || 0}, pending=${approval.pendingCount || 0})`;
   }
 
+  let strategyStatus = 'missing';
+  if (strategy.ready && strategy.memoPath) {
+    strategyStatus = `ready (${normalizeRelative(projectRoot, strategy.memoPath)})`;
+  } else if (strategy.memoPath) {
+    strategyStatus =
+      `incomplete (${normalizeRelative(projectRoot, strategy.memoPath)}; ` +
+      `missing: ${strategy.missingSections.join(', ')})`;
+  } else if (strategy.resolution === 'ambiguous') {
+    strategyStatus =
+      `blocked (multiple strategy memos exist; set the active strategy by editing the target ` +
+      `strategy-memo.md. total=${strategy.totalMemos || 0})`;
+  }
+
   return [
     'Company workflow:',
     '1. market-researcher + competitor-analyst + ga4-analyst gather market, competitor, and measurement evidence and save artifacts under reports/research/ or tracking-plan.md',
-    '2. marketing-strategist turns evidence into strategy, channel priorities, and concrete dev asks',
+    '2. marketing-strategist turns evidence into a saved strategy memo under reports/strategy/YYYYMMDD-[slug]/strategy-memo.md',
     '3. social-media-manager / seo-specialist / revops-manager / growth-manager turn strategy into calendars, discoverability plans, funnel ops, and lifecycle recommendations when needed',
-    '4. project-manager scopes backlog, codebase-scout maps current system, technical-brainstormer evaluates trade-offs',
+    '4. project-manager scopes backlog only after a complete saved strategy memo exists; codebase-scout maps current system, technical-brainstormer evaluates trade-offs',
     '5. implementation-planner writes plan.md with `Approval Status: pending`',
     '6. User approves -> plan updated to `Approval Status: approved` -> engineers implement',
     '7. quality-reviewer then qa-tester run quality gate before any release',
+    `Active strategy memo: ${activeStrategyLabel}`,
+    `Current strategy memo: ${strategyStatus}`,
     `Active plan: ${activePlanLabel}`,
     `Current plan approval: ${planStatus}`,
     'Delegation rule: the main session orchestrates subagents; subagents report back, they do not recursively spawn more subagents.',
@@ -469,8 +634,10 @@ module.exports = {
   recordAgentSession,
   readActivePlan,
   readApprovalState,
+  readStrategyState,
   readHookStdin,
   responseWithContext,
   setActivePlan,
+  setActiveStrategy,
   validateAgentEditPath
 };

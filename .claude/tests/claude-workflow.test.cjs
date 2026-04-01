@@ -51,6 +51,18 @@ function writeActivePlan(tmpDir, relativePlanPath) {
   );
 }
 
+function writeActiveStrategy(tmpDir, relativeMemoPath) {
+  const stateDir = path.join(tmpDir, '.claude', 'state');
+  fs.mkdirSync(stateDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(stateDir, 'active-strategy.json'),
+    `${JSON.stringify({
+      memoPath: relativeMemoPath.replace(/\\/g, '/'),
+      updatedAt: '2026-03-31T00:00:00.000Z'
+    }, null, 2)}\n`
+  );
+}
+
 function buildApplyPatchCommand(targetPath) {
   return [
     "apply_patch <<'PATCH'",
@@ -273,6 +285,31 @@ test('active plan sync records the latest plan.md path', () => {
   assert.equal(activePlanState.planPath, 'plans/launch/plan.md');
 });
 
+test('active strategy sync records the latest strategy-memo.md path', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const strategyDir = path.join(tmpDir, 'reports', 'strategy', 'launch-angle');
+  fs.mkdirSync(strategyDir, { recursive: true });
+  fs.writeFileSync(path.join(strategyDir, 'strategy-memo.md'), '# Strategy Memo\n');
+
+  const hook = runHook(
+    '.claude/hooks/active-strategy-sync.cjs',
+    {
+      tool_name: 'Write',
+      tool_input: {
+        file_path: path.join(strategyDir, 'strategy-memo.md')
+      }
+    },
+    tmpDir
+  );
+
+  const activeStrategyState = JSON.parse(
+    fs.readFileSync(path.join(tmpDir, '.claude', 'state', 'active-strategy.json'), 'utf8')
+  );
+
+  assert.equal(hook.status, 0);
+  assert.equal(activeStrategyState.memoPath, 'reports/strategy/launch-angle/strategy-memo.md');
+});
+
 test('plan approval gate uses the active plan instead of an unrelated approved plan', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
   const oldPlanDir = path.join(tmpDir, 'plans', 'old-release');
@@ -314,8 +351,78 @@ test('session init exposes workflow summary', () => {
   assert.equal(hook.status, 0);
   assert.match(context, /Workflow Bootstrap/);
   assert.match(context, /market-researcher/);
+  assert.match(context, /Current strategy memo/);
   assert.match(context, /Current plan approval/);
   assert.match(context, /senior-only/);
+});
+
+test('workflow reminder blocks /eup-pm when strategy memo is missing', () => {
+  const hook = runHook(
+    '.claude/hooks/workflow-reminder.cjs',
+    {
+      prompt: '/eup-pm break this into tasks'
+    },
+    projectRoot
+  );
+  const parsed = JSON.parse(hook.stdout);
+  const context = parsed.hookSpecificOutput.additionalContext;
+
+  assert.equal(hook.status, 0);
+  assert.match(context, /PM Intake Gate/);
+  assert.match(context, /\/eup-pm is BLOCKED/);
+  assert.match(context, /reports\/strategy\/YYYYMMDD-\[slug\]\/strategy-memo\.md/);
+});
+
+test('workflow reminder allows /eup-pm when strategy memo is ready', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const strategyDir = path.join(tmpDir, 'reports', 'strategy', 'ready-brief');
+  fs.mkdirSync(strategyDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(strategyDir, 'strategy-memo.md'),
+    [
+      '# Strategy Memo',
+      '',
+      '## Đối Tượng Ưu Tiên (Target Audience)',
+      '- Learners',
+      '',
+      '## Định Vị (Positioning)',
+      '- Fast bilingual subtitle learning',
+      '',
+      '## Ưu Tiên Kênh (Channel Priorities)',
+      '- Search',
+      '',
+      '## Thí Nghiệm Ưu Tiên (Priority Experiments)',
+      '- Test landing page',
+      '',
+      '## Ghi Chú Đo Lường (Measurement Notes)',
+      '- Track activation',
+      '',
+      '## Yêu Cầu Cho Dev (Concrete Dev Asks)',
+      '- Instrument subtitle tap',
+      '',
+      '## Gói Bàn Giao PM (PM Intake Packet)',
+      '- Scope MVP flow',
+      '',
+      '## Bàn Giao Vai Trò (Role Handoffs)',
+      '- project-manager next',
+      ''
+    ].join('\n')
+  );
+  writeActiveStrategy(tmpDir, 'reports/strategy/ready-brief/strategy-memo.md');
+
+  const hook = runHook(
+    '.claude/hooks/workflow-reminder.cjs',
+    {
+      prompt: '/eup-pm break this into tasks'
+    },
+    tmpDir
+  );
+  const parsed = JSON.parse(hook.stdout);
+  const context = parsed.hookSpecificOutput.additionalContext;
+
+  assert.equal(hook.status, 0);
+  assert.match(context, /Strategy memo ready:/);
+  assert.match(context, /PM intake may proceed/);
 });
 
 test('marketing strategist cannot edit product source even with an approved plan', () => {
@@ -559,6 +666,12 @@ test('qa tester cannot edit product source after approval', () => {
 test('constrained non-engineering roles are limited to approved artifact paths', () => {
   const cases = [
     {
+      agent: 'marketing-strategist',
+      allowedPath: ['reports', 'strategy', '20260401-demo', 'strategy-memo.md'],
+      blockedPath: ['src', 'app.ts'],
+      reason: /strategy artifacts/i
+    },
+    {
       agent: 'competitor-analyst',
       allowedPath: ['reports', 'research', '20260331-demo', 'competitor-landscape.md'],
       blockedPath: ['src', 'app.ts'],
@@ -595,6 +708,7 @@ test('constrained non-engineering roles are limited to approved artifact paths',
     fs.mkdirSync(path.join(tmpDir, 'reports', 'research', '20260331-demo'), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, 'plans', 'launch'), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, 'docs'), { recursive: true });
+    fs.mkdirSync(path.dirname(path.join(tmpDir, ...testCase.allowedPath)), { recursive: true });
 
     runHook(
       '.claude/hooks/subagent-context.cjs',
@@ -675,9 +789,10 @@ test('subagent stop allows valid handoff contract', () => {
   assert.equal(parsed.continue, true);
 });
 
-test('workflow e2e smoke: research -> plan -> approval -> implementation', () => {
+test('workflow e2e smoke: research -> strategy -> plan -> approval -> implementation', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-e2e-'));
   fs.mkdirSync(path.join(tmpDir, 'reports', 'research', '20260331-demo'), { recursive: true });
+  fs.mkdirSync(path.join(tmpDir, 'reports', 'strategy', '20260331-demo'), { recursive: true });
   fs.mkdirSync(path.join(tmpDir, 'plans', 'launch-workflow'), { recursive: true });
   fs.mkdirSync(path.join(tmpDir, 'src'), { recursive: true });
   fs.mkdirSync(path.join(tmpDir, 'tests'), { recursive: true });
@@ -692,6 +807,7 @@ test('workflow e2e smoke: research -> plan -> approval -> implementation', () =>
   );
   const initialContext = JSON.parse(initialSession.stdout).hookSpecificOutput.additionalContext;
   assert.match(initialContext, /reports\/research/);
+  assert.match(initialContext, /Current strategy memo: missing/);
   assert.match(initialContext, /Current plan approval: missing/);
 
   runHook(
@@ -719,6 +835,89 @@ test('workflow e2e smoke: research -> plan -> approval -> implementation', () =>
     path.join(tmpDir, 'reports', 'research', '20260331-demo', 'research-summary.md'),
     '# Research Summary\n\nJTBD and pains captured.\n'
   );
+
+  const blockedPmIntake = runHook(
+    '.claude/hooks/workflow-reminder.cjs',
+    {
+      prompt: '/eup-pm break this into tasks'
+    },
+    tmpDir
+  );
+  const blockedPmContext = JSON.parse(blockedPmIntake.stdout).hookSpecificOutput.additionalContext;
+  assert.match(blockedPmContext, /\/eup-pm is BLOCKED/);
+
+  runHook(
+    '.claude/hooks/subagent-context.cjs',
+    {
+      session_id: 'e2e-strategy-writer',
+      agent_type: 'marketing-strategist'
+    },
+    tmpDir
+  );
+
+  const strategyWrite = runHook(
+    '.claude/hooks/plan-approval-gate.cjs',
+    {
+      session_id: 'e2e-strategy-writer',
+      tool_name: 'Write',
+      tool_input: {
+        file_path: path.join(tmpDir, 'reports', 'strategy', '20260331-demo', 'strategy-memo.md')
+      }
+    },
+    tmpDir
+  );
+  assert.equal(JSON.parse(strategyWrite.stdout).continue, true);
+  fs.writeFileSync(
+    path.join(tmpDir, 'reports', 'strategy', '20260331-demo', 'strategy-memo.md'),
+    [
+      '# Strategy Memo',
+      '',
+      '## Đối Tượng Ưu Tiên (Target Audience)',
+      '- Intermediate video-first learners',
+      '',
+      '## Định Vị (Positioning)',
+      '- Learn from real videos with instant bilingual support',
+      '',
+      '## Ưu Tiên Kênh (Channel Priorities)',
+      '- Search + creator demos',
+      '',
+      '## Thí Nghiệm Ưu Tiên (Priority Experiments)',
+      '- Test dual-subtitle landing page',
+      '',
+      '## Ghi Chú Đo Lường (Measurement Notes)',
+      '- Track subtitle tap, save word, review return',
+      '',
+      '## Yêu Cầu Cho Dev (Concrete Dev Asks)',
+      '- MVP player with bilingual subtitle controls',
+      '',
+      '## Gói Bàn Giao PM (PM Intake Packet)',
+      '- Scope the MVP viewing and review loop',
+      '',
+      '## Bàn Giao Vai Trò (Role Handoffs)',
+      '- project-manager receives next',
+      ''
+    ].join('\n')
+  );
+  runHook(
+    '.claude/hooks/active-strategy-sync.cjs',
+    {
+      tool_name: 'Write',
+      tool_input: {
+        file_path: path.join(tmpDir, 'reports', 'strategy', '20260331-demo', 'strategy-memo.md')
+      }
+    },
+    tmpDir
+  );
+
+  const readyPmIntake = runHook(
+    '.claude/hooks/workflow-reminder.cjs',
+    {
+      prompt: '/eup-pm break this into tasks'
+    },
+    tmpDir
+  );
+  const readyPmContext = JSON.parse(readyPmIntake.stdout).hookSpecificOutput.additionalContext;
+  assert.match(readyPmContext, /Strategy memo ready:/);
 
   runHook(
     '.claude/hooks/subagent-context.cjs',
@@ -874,6 +1073,7 @@ test('workflow e2e smoke: research -> plan -> approval -> implementation', () =>
   assert.match(strategistParsed.hookSpecificOutput.permissionDecisionReason, /strategy artifacts/i);
 
   assert.equal(fs.existsSync(path.join(tmpDir, 'reports', 'research', '20260331-demo', 'research-summary.md')), true);
+  assert.equal(fs.existsSync(path.join(tmpDir, 'reports', 'strategy', '20260331-demo', 'strategy-memo.md')), true);
   assert.equal(fs.existsSync(path.join(tmpDir, 'plans', 'launch-workflow', 'plan.md')), true);
   assert.equal(fs.existsSync(path.join(tmpDir, 'src', 'app.ts')), true);
   assert.equal(fs.existsSync(path.join(tmpDir, 'tests', 'app.test.ts')), true);

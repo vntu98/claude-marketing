@@ -279,6 +279,15 @@ function validateProject(projectRoot) {
     if (!/\/eup-scout/i.test(pmContent) || !/\/eup-plan/i.test(pmContent)) {
       errors.push('eup-pm must route discovery and planning through /eup-scout and /eup-plan');
     }
+    if (!/reports\/strategy\/\*\*\/strategy-memo\.md/i.test(pmContent)) {
+      errors.push('eup-pm must require a saved strategy memo under reports/strategy/**/strategy-memo.md');
+    }
+    if (!/return `BLOCKED`|return BLOCKED|stop immediately/i.test(pmContent)) {
+      errors.push('eup-pm must explicitly block when the strategy memo gate is missing');
+    }
+    if (!/do not scope directly from raw research/i.test(pmContent)) {
+      errors.push('eup-pm must reject raw research as a substitute for a strategy memo');
+    }
     if (!/main session\/controller|main session\/controller decides|main session\/controller can execute/i.test(pmContent)) {
       errors.push('eup-pm must explicitly say the main session/controller owns delegation');
     }
@@ -461,12 +470,19 @@ function validateProject(projectRoot) {
       /Priority experiments/i,
       /Measurement notes/i,
       /Concrete dev asks/i,
-      /Role handoffs/i
+      /Role handoffs/i,
+      /PM intake packet/i,
+      /reports\/strategy\/YYYYMMDD-\[slug\]\/strategy-memo\.md/i
     ];
     for (const pattern of requiredStrategyPatterns) {
       if (!pattern.test(strategyContent)) {
         errors.push(`eup-strategy is missing required strategy memo guidance matching ${pattern}`);
       }
+    }
+
+    const tools = strategySkill.frontmatter['allowed-tools'] || [];
+    if (!Array.isArray(tools) || !tools.includes('Write') || !tools.includes('Edit')) {
+      errors.push('eup-strategy must allow Write and Edit so saved strategy memos can be written under reports/strategy/**');
     }
   }
 
@@ -480,6 +496,24 @@ function validateProject(projectRoot) {
   );
   if (!fs.existsSync(strategyMemoTemplatePath)) {
     errors.push('Missing strategy memo template reference: .claude/skills/eup-strategy/references/strategy-memo-template.md');
+  } else {
+    const strategyTemplate = readFile(strategyMemoTemplatePath);
+    const requiredTemplatePatterns = [
+      /reports\/strategy\/YYYYMMDD-\[slug\]\/strategy-memo\.md/i,
+      /Đối Tượng Ưu Tiên \(Target Audience\)/i,
+      /Định Vị \(Positioning\)/i,
+      /Ưu Tiên Kênh \(Channel Priorities\)/i,
+      /Thí Nghiệm Ưu Tiên \(Priority Experiments\)/i,
+      /Ghi Chú Đo Lường \(Measurement Notes\)/i,
+      /Yêu Cầu Cho Dev \(Concrete Dev Asks\)/i,
+      /Gói Bàn Giao PM \(PM Intake Packet\)/i,
+      /Bàn Giao Vai Trò \(Role Handoffs\)/i
+    ];
+    for (const pattern of requiredTemplatePatterns) {
+      if (!pattern.test(strategyTemplate)) {
+        errors.push(`Strategy memo template is missing required structure matching ${pattern}`);
+      }
+    }
   }
 
   const seoSpecialist = agentMap.get('seo-specialist');
@@ -534,6 +568,9 @@ function validateProject(projectRoot) {
     const postToolHooks = JSON.stringify(settings.hooks?.PostToolUse || []);
     if (!/active-plan-sync\.cjs/.test(postToolHooks)) {
       errors.push('settings.json must register active-plan-sync.cjs to track the active plan');
+    }
+    if (!/active-strategy-sync\.cjs/.test(postToolHooks)) {
+      errors.push('settings.json must register active-strategy-sync.cjs to track the active strategy memo');
     }
     for (const hookPath of extractCommandPaths(settings)) {
       if (!fs.existsSync(path.join(projectRoot, hookPath))) {
