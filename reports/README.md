@@ -17,6 +17,8 @@ Minimum required files:
 - `quote-bank.md`
 - `sources.md`
 - `competitor-landscape.md` when the brief includes market scans, positioning, strategy, or competitor work
+- `ga4-insights.md` when GA4 analysis or measurement findings are part of the market cycle
+- `channel-scorecard.md` when channel-level signal, acquisition, or media analysis is in scope
 
 Rule:
 
@@ -45,3 +47,23 @@ Minimum required sections:
 - `Bàn Giao Vai Trò (Role Handoffs)`
 
 `/eup-pm` should treat this saved memo as a hard prerequisite, not an optional artifact.
+
+## Dev Intake Packets
+
+When PM intake should become a durable artifact for planning or implementation orchestration, save:
+
+```text
+reports/strategy/YYYYMMDD-[slug]/dev-intake.md
+```
+
+Minimum required sections:
+
+- `Business Objective`
+- `Approved Strategy Source`
+- `Priority Workstreams`
+- `Scoped Dev Asks`
+- `Dependencies And Risks`
+- `Suggested Ownership`
+- `Tracking And Validation Needs`
+
+`/eup-dev-intake` should write this packet before `implementation-planner` creates `task-graph.json` and `ownership-matrix.md`.

@@ -1,12 +1,13 @@
 ---
 name: mobile-engineer
 description: Implement Flutter and mobile app changes from an approved plan. Use proactively when approved work touches mobile UI, state, or platform integrations.
-tools: Read, Glob, Grep, Write, Edit, Bash
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:
   - eup-mobile
 memory: project
+isolation: worktree
 maxTurns: 12
 ---
 You are the Senior Mobile Engineer.

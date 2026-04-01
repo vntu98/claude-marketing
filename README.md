@@ -1,8 +1,8 @@
 # EUP — AI Marketing + Development Pipeline
 
-Claude Code company setup built around official Claude Code primitives: shared instructions in [CLAUDE.md](CLAUDE.md), hooks in [.claude/settings.json](.claude/settings.json), specialist subagents in [.claude/agents](.claude/agents), and reusable skills in [.claude/skills](.claude/skills). The default operating company is a language-learning app business, and every role runs at a senior or staff-level bar.
+Claude Code company setup built around official Claude Code primitives: shared instructions in [CLAUDE.md](CLAUDE.md), hooks in [.claude/settings.json](.claude/settings.json), specialist subagents in [.claude/agents](.claude/agents), reusable skills in [.claude/skills](.claude/skills), and Agent Teams runtime orchestration through native task tools. The default operating company is a language-learning app business, and every role runs at a senior or staff-level bar.
 
-Project-local overrides live in `.claude/settings.local.json` and are gitignored. All project subagents are described with explicit `Use proactively` routing so Claude Code can auto-delegate them more reliably.
+Project-local overrides live in `.claude/settings.local.json` and are gitignored. The repo assumes Claude Code CLI with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` enabled in project settings. All project subagents are described with explicit `Use proactively` routing so Claude Code can auto-delegate them more reliably. Phase 1 runtime hardening is now in place: task packet validation at `TaskCreated`, session-state save/replay, richer teammate context injection, and `worktree` isolation for implementation-capable roles.
 
 ## Setup
 
@@ -13,6 +13,21 @@ claude
 # Run first — all other skills depend on this
 /eup-context
 ```
+
+Optional:
+
+- Copy `.mcp.json.example` to `.mcp.json` if you want shared docs/browser MCP servers.
+- Fill `.env.local` from `.env.example` to unlock live data via `tools/*.js`.
+
+## Runtime Guardrails
+
+The company runtime now enforces these operating rules:
+
+- `TaskCreated` validates that every team task includes a real task packet with owner, dependencies, acceptance criteria, and validation.
+- Session snapshots are persisted under `.claude/session-state/` and replayed on `startup`, `resume`, and `compact` so work can continue without re-scoping from memory.
+- Teammates receive richer `SubagentStart` context: peers, assigned tasks, active strategy artifact, active plan artifact, and current team progress.
+- Implementation-capable roles (`database-engineer`, `backend-engineer`, `frontend-engineer`, `mobile-engineer`, `fullstack-developer`, `qa-tester`, `devops-engineer`) declare `isolation: worktree` for safe parallel execution.
+- `TaskCompleted` and `TeammateIdle` update runtime state that feeds the status line and the current handoff view.
 
 ## Senior Company Roster
 
@@ -66,13 +81,15 @@ MARKETING                                               DEV
 
 /eup-context (company context)
        ↓
-market-researcher + competitor-analyst + ga4-analyst
+/eup-market-cycle
        ↓
-/eup-strategy (marketing-strategist, save strategy memo)
+market-researcher + competitor-analyst + ga4-analyst + seo-specialist|growth-manager
+       ↓
+marketing-strategist (save strategy memo)
        ↓
 /eup-social-content         ┐
 /eup-seo-audit             │
-/eup-site-architecture     │ support / refine   →   /eup-pm (project-manager)
+/eup-site-architecture     │ support / refine   →   /eup-dev-intake
 /eup-revops                │                            ↓
 /eup-signup-optimization   │                      /eup-scout (codebase-scout)
 /eup-onboarding-activation │                            ↓
@@ -83,6 +100,8 @@ market-researcher + competitor-analyst + ga4-analyst
                                                       ↓
                                                ⛔ USER APPROVAL
                                                       ↓
+                                              /eup-implement
+                                                       ↓
                                          /eup-db         ┐
                                          /eup-backend    │ parallel
                                          /eup-frontend   │ specialists
@@ -100,6 +119,7 @@ market-researcher + competitor-analyst + ga4-analyst
 
 | Command | What it does |
 |---------|-------------|
+| `/eup-market-cycle` | Manual Agent Teams workflow: research, competitor intel, GA4/channel analysis, strategy memo |
 | `/eup-context` | Product, audience, voice, positioning |
 | `/eup-research` | Mine customer language from Reddit, G2, interviews |
 | `/eup-strategy` | Strategy memo: positioning, channel priorities, experiments, dev asks |
@@ -130,7 +150,10 @@ market-researcher + competitor-analyst + ga4-analyst
 
 | Command | What it does |
 |---------|-------------|
-| `/eup-pm` | Inline orchestrator: breaks strategy into dev tasks and tells the main session what to delegate |
+| `/eup-dev-intake` | Manual Agent Teams workflow: PM intake, scout, brainstorm, and planning handoff |
+| `/eup-implement` | Manual Agent Teams workflow: approved implementation from `task-graph.json` and `ownership-matrix.md` |
+| `/eup-company-status` | Read current company state across strategy, plan, approval, and active team progress |
+| `/eup-pm` | Manual PM orchestration helper that writes durable `dev-intake.md` packets |
 | `/eup-scout` | Fast codebase scouting, dependency tracing, and risk mapping |
 | `/eup-plan` | Architect: tech stack, system design, approval gate |
 | `/eup-brainstorm` | Evaluate solutions, compare trade-offs |
@@ -153,13 +176,13 @@ market-researcher + competitor-analyst + ga4-analyst
 3. /eup-analytics           → define or update GA4 tracking plan
 4. /eup-signup-optimization → tighten acquisition flow
 5. /eup-strategy            → save strategy memo with positioning, experiments, and dev asks
-6. /eup-pm                  → break strategy into dev tasks
-7. /eup-plan                → design architecture → ⛔ you approve
+6. /eup-dev-intake          → write `dev-intake.md`, scout, brainstorm
+7. /eup-plan                → write `plan.md`, `task-graph.json`, `ownership-matrix.md` → ⛔ you approve
 8. main session delegates approved work:
    - database-engineer: growth and event schema
    - frontend-engineer: landing page and onboarding UI
    - backend-engineer: signup API and tracking endpoints
-9. /eup-pm with the approved plan → orchestrated implementation
+9. /eup-implement          → orchestrated implementation with task graph + worktree-safe ownership
 10. eup-review + eup-test → quality gates
 11. /eup-devops          → deploy only when asked
 ```
@@ -169,24 +192,85 @@ market-researcher + competitor-analyst + ga4-analyst
 - Shared settings: `.claude/settings.json`
 - Project agents: `.claude/agents/*.md`
 - Workflow rules: `.claude/rules/*.md`
+- Runtime hooks: `.claude/hooks/*.cjs`
+- Session snapshots: `.claude/session-state/latest.md` and `.claude/session-state/archive/*.md`
 - Validation: `.claude/scripts/validate-workflow.cjs`
 - Tests: `.claude/tests/claude-workflow.test.cjs`
 - Measurement plan: `tracking-plan.md`
+
+## Task Packet Contract
+
+Every team task created by `/eup-market-cycle`, `/eup-dev-intake`, or `/eup-implement` should have a `task_description` that follows this contract:
+
+```text
+Phase: implementation
+Owner Role: backend-engineer
+Depends On: task-db
+File Ownership:
+- src/api/**
+- src/services/tracking/**
+Isolation: worktree
+Acceptance Criteria:
+- approved API contract is implemented
+- failure paths return explicit errors
+Validation:
+- npm test -- tracking
+- npm run build
+```
+
+Use one of these scope sections depending on the role:
+
+- `Artifacts:` for PM, planner, strategist, and report-writing lanes
+- `Read Scope:` for scout, brainstorm, and review lanes
+- `File Ownership:` plus `Isolation: worktree` for implementation lanes
+
+If a task packet is incomplete, the `TaskCreated` hook will block it before the teammate starts work.
+
+## Session Recovery
+
+The repo now keeps lightweight workflow memory on disk:
+
+- latest snapshot: `.claude/session-state/latest.md`
+- archived snapshots: `.claude/session-state/archive/*.md`
+
+What gets captured:
+
+- active strategy memo and status
+- active plan and approval status
+- active team, phase, and task progress
+- latest completed task or runtime signal
+
+What this changes operationally:
+
+- after `startup`, `resume`, or `compact`, Claude can re-load the saved workflow snapshot
+- the right move is to re-open the active plan and strategy, then continue from the saved handoff instead of re-running discovery from scratch
 
 ## Validate The Team
 
 ```bash
 node .claude/scripts/validate-workflow.cjs
 node --test .claude/tests/claude-workflow.test.cjs
-node --test tools/tests/ga4-presets.test.cjs
-node --test tools/tests/buffer-dry-run.test.cjs
+node --test tools/tests/*.cjs
 ```
 
-The validation suite checks the workflow contract, role scopes, approval gate, hook behavior, GA4/social dry-run tooling, and now the `seniority: senior` requirement across the full roster.
+The validation suite checks the workflow contract, role scopes, approval gate, Agent Teams hooks, status line behavior, dry-run marketing tooling, and the `seniority: senior` requirement across the full roster.
+
+It now also covers:
+
+- `TaskCreated` task-packet enforcement
+- session-state save/replay
+- richer teammate context injection
+- `worktree` isolation declarations for implementation roles
 
 ## CLI Tools (16)
 
 Node.js scripts in `tools/` for direct API access. `--dry-run` on all.
+
+Recommended usage:
+
+- Treat every external mutation as dry-run first.
+- Keep `.env.local` or shell exports local; do not commit secrets.
+- Use these scripts as the live-data layer for GA4, GSC, SEO, ads, email, and workflow automation until you wire richer MCP servers.
 
 | Tool | API |
 |------|-----|

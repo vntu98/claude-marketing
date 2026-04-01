@@ -4,6 +4,8 @@
 
 Example phase files for the same plan folder:
 
+- `task-graph.json`
+- `ownership-matrix.md`
 - `phase-01-foundation.md`
 - `phase-02-data-and-backend.md`
 - `phase-03-product-and-ux.md`
@@ -57,6 +59,10 @@ Approval Status: pending
 | 2 | backend-engineer | `src/api/**` |
 | 3 | frontend-engineer | `src/components/**`, `src/app/**` |
 | 4 | quality-reviewer + qa-tester + devops-engineer | tests, CI, deploy config |
+
+## Runtime Contracts
+- `task-graph.json`: machine-readable tasks with owner, dependencies, file globs, acceptance criteria, validation commands, and blocking policy
+- `ownership-matrix.md`: human-readable ownership lanes and parallel-safe file surfaces
 
 ## Risks
 - [Risk 1]: [Mitigation]

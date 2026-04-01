@@ -1,7 +1,7 @@
 ---
 name: market-researcher
 description: Research customer needs, market signals, community language, and buying triggers before strategy work. Use proactively when fresh customer or market evidence is needed.
-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit
+tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

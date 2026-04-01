@@ -1,7 +1,7 @@
 ---
 name: competitor-analyst
 description: Analyze competitors, positioning, pricing, messaging, and search visibility to support strategy decisions. Use proactively when competitor or alternative intelligence is needed.
-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit
+tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

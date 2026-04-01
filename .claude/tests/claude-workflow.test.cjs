@@ -11,7 +11,7 @@ const { spawnSync } = require('node:child_process');
 const projectRoot = path.resolve(__dirname, '..', '..');
 const { validateProject } = require('../scripts/validate-workflow.cjs');
 
-function runHook(relativePath, payload, cwd) {
+function runHook(relativePath, payload, cwd, extraEnv = {}) {
   const result = spawnSync(
     process.execPath,
     [path.join(projectRoot, relativePath)],
@@ -19,7 +19,8 @@ function runHook(relativePath, payload, cwd) {
       cwd,
       env: {
         ...process.env,
-        CLAUDE_PROJECT_DIR: cwd
+        CLAUDE_PROJECT_DIR: cwd,
+        ...extraEnv
       },
       input: JSON.stringify(payload),
       encoding: 'utf8'
@@ -63,6 +64,15 @@ function writeActiveStrategy(tmpDir, relativeMemoPath) {
   );
 }
 
+function writeTeamRuntimeState(tmpDir, state) {
+  const stateDir = path.join(tmpDir, '.claude', 'state');
+  fs.mkdirSync(stateDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(stateDir, 'team-runtime.json'),
+    `${JSON.stringify(state, null, 2)}\n`
+  );
+}
+
 function buildApplyPatchCommand(targetPath) {
   return [
     "apply_patch <<'PATCH'",
@@ -72,6 +82,24 @@ function buildApplyPatchCommand(targetPath) {
     '*** End Patch',
     'PATCH'
   ].join('\n');
+}
+
+function writeTeamTask(homeDir, teamName, task) {
+  const taskDir = path.join(homeDir, '.claude', 'tasks', teamName);
+  fs.mkdirSync(taskDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(taskDir, `${task.id}.json`),
+    `${JSON.stringify(task, null, 2)}\n`
+  );
+}
+
+function writeTeamConfig(homeDir, teamName, members) {
+  const teamDir = path.join(homeDir, '.claude', 'teams', teamName);
+  fs.mkdirSync(teamDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(teamDir, 'config.json'),
+    `${JSON.stringify({ name: teamName, members }, null, 2)}\n`
+  );
 }
 
 test('workflow configuration validates', () => {
@@ -356,6 +384,79 @@ test('session init exposes workflow summary', () => {
   assert.match(context, /senior-only/);
 });
 
+test('session state persists a workflow snapshot on Stop and replays it on startup', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-session-state-'));
+  const planDir = path.join(tmpDir, 'plans', 'feature');
+  const strategyDir = path.join(tmpDir, 'reports', 'strategy', 'feature');
+  fs.mkdirSync(planDir, { recursive: true });
+  fs.mkdirSync(strategyDir, { recursive: true });
+  fs.writeFileSync(path.join(planDir, 'plan.md'), '# Plan\n\nApproval Status: approved\n');
+  fs.writeFileSync(
+    path.join(strategyDir, 'strategy-memo.md'),
+    [
+      '# Strategy Memo',
+      '',
+      '## Đối Tượng Ưu Tiên (Target Audience)',
+      '- Learners',
+      '',
+      '## Định Vị (Positioning)',
+      '- Fast bilingual subtitle learning',
+      '',
+      '## Ưu Tiên Kênh (Channel Priorities)',
+      '- Search',
+      '',
+      '## Thí Nghiệm Ưu Tiên (Priority Experiments)',
+      '- Test landing page',
+      '',
+      '## Ghi Chú Đo Lường (Measurement Notes)',
+      '- Track activation',
+      '',
+      '## Yêu Cầu Cho Dev (Concrete Dev Asks)',
+      '- Instrument subtitle tap',
+      '',
+      '## Gói Bàn Giao PM (PM Intake Packet)',
+      '- Scope MVP flow',
+      '',
+      '## Bàn Giao Vai Trò (Role Handoffs)',
+      '- project-manager next',
+      ''
+    ].join('\n')
+  );
+  writeActivePlan(tmpDir, 'plans/feature/plan.md');
+  writeActiveStrategy(tmpDir, 'reports/strategy/feature/strategy-memo.md');
+  writeTeamRuntimeState(tmpDir, {
+    activeTeam: 'implementation',
+    phase: 'backend',
+    progress: { total: 3, completed: 1, pending: 1, inProgress: 1 },
+    lastTask: { id: 'task-1', subject: 'Implement backend' }
+  });
+
+  const stopHook = runHook(
+    '.claude/hooks/session-state.cjs',
+    {
+      hook_event_name: 'Stop',
+      last_assistant_message: 'Backend lane complete.'
+    },
+    tmpDir
+  );
+  const latestState = fs.readFileSync(path.join(tmpDir, '.claude', 'session-state', 'latest.md'), 'utf8');
+  assert.equal(stopHook.status, 0);
+  assert.match(latestState, /Approved plan active: plans\/feature\/plan\.md/);
+  assert.match(latestState, /Team runtime tracked: implementation/);
+
+  const startHook = runHook(
+    '.claude/hooks/session-state.cjs',
+    {
+      source: 'startup'
+    },
+    tmpDir
+  );
+  const startParsed = JSON.parse(startHook.stdout);
+  assert.equal(startHook.status, 0);
+  assert.match(startParsed.hookSpecificOutput.additionalContext, /Previous Session State/);
+  assert.match(startParsed.hookSpecificOutput.additionalContext, /plans\/feature\/plan\.md/);
+});
+
 test('workflow reminder blocks /eup-pm when strategy memo is missing', () => {
   const hook = runHook(
     '.claude/hooks/workflow-reminder.cjs',
@@ -369,7 +470,7 @@ test('workflow reminder blocks /eup-pm when strategy memo is missing', () => {
 
   assert.equal(hook.status, 0);
   assert.match(context, /PM Intake Gate/);
-  assert.match(context, /\/eup-pm is BLOCKED/);
+  assert.match(context, /\/eup-pm and \/eup-dev-intake are BLOCKED/);
   assert.match(context, /reports\/strategy\/YYYYMMDD-\[slug\]\/strategy-memo\.md/);
 });
 
@@ -423,6 +524,62 @@ test('workflow reminder allows /eup-pm when strategy memo is ready', () => {
   assert.equal(hook.status, 0);
   assert.match(context, /Strategy memo ready:/);
   assert.match(context, /PM intake may proceed/);
+});
+
+test('task created hook blocks incomplete team task packets', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-task-created-block-'));
+
+  const hook = runHook(
+    '.claude/hooks/task-created-validator.cjs',
+    {
+      hook_event_name: 'TaskCreated',
+      team_name: 'market-cycle',
+      task_id: 'task-01',
+      task_subject: 'Research JTBD',
+      task_description: 'Phase: market-discovery\nOwner Role: market-researcher'
+    },
+    tmpDir
+  );
+
+  assert.equal(hook.status, 2);
+  assert.match(hook.stderr, /missing required task packet fields/i);
+});
+
+test('task created hook allows valid implementation task packets and records runtime state', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-task-created-ok-'));
+
+  const hook = runHook(
+    '.claude/hooks/task-created-validator.cjs',
+    {
+      hook_event_name: 'TaskCreated',
+      team_name: 'implementation',
+      teammate_name: 'lead',
+      task_id: 'task-02',
+      task_subject: 'Implement backend tracking',
+      task_description: [
+        'Phase: implementation',
+        'Owner Role: backend-engineer',
+        'Depends On: task-db',
+        'File Ownership:',
+        '- src/api/**',
+        '- src/services/tracking/**',
+        'Isolation: worktree',
+        'Acceptance Criteria:',
+        '- API contract is implemented',
+        'Validation:',
+        '- npm test -- tracking',
+        '- npm run build'
+      ].join('\n')
+    },
+    tmpDir
+  );
+  const runtimeState = JSON.parse(
+    fs.readFileSync(path.join(tmpDir, '.claude', 'state', 'team-runtime.json'), 'utf8')
+  );
+
+  assert.equal(hook.status, 0);
+  assert.equal(runtimeState.activeTeam, 'implementation');
+  assert.equal(runtimeState.lastTaskCreated.ownerRole, 'backend-engineer');
 });
 
 test('marketing strategist cannot edit product source even with an approved plan', () => {
@@ -691,9 +848,9 @@ test('constrained non-engineering roles are limited to approved artifact paths',
     },
     {
       agent: 'project-manager',
-      allowedPath: ['plans', 'pm-brief.md'],
+      allowedPath: ['reports', 'strategy', '20260401-demo', 'dev-intake.md'],
       blockedPath: ['src', 'feature.ts'],
-      reason: /plans and docs only/i
+      reason: /strategy intake packets/i
     },
     {
       agent: 'implementation-planner',
@@ -750,6 +907,292 @@ test('constrained non-engineering roles are limited to approved artifact paths',
     assert.equal(blockedParsed.hookSpecificOutput.permissionDecision, 'deny');
     assert.match(blockedParsed.hookSpecificOutput.permissionDecisionReason, testCase.reason);
   }
+});
+
+test('settings enable agent teams runtime, status line, and secret deny rules', () => {
+  const settings = JSON.parse(
+    fs.readFileSync(path.join(projectRoot, '.claude', 'settings.json'), 'utf8')
+  );
+
+  assert.equal(settings.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS, '1');
+  assert.match(settings.statusLine.command, /\.claude\/statusline\.cjs/);
+  assert.ok(Array.isArray(settings.permissions.deny));
+  assert.ok(settings.permissions.deny.includes('Read(./.env)'));
+  assert.ok(settings.permissions.deny.includes('Read(./.env.*)'));
+  assert.ok(settings.permissions.deny.includes('Read(./secrets/**)'));
+  assert.ok(Array.isArray(settings.hooks.TaskCreated));
+  assert.ok(Array.isArray(settings.hooks.TaskCompleted));
+  assert.ok(Array.isArray(settings.hooks.TeammateIdle));
+  assert.ok(Array.isArray(settings.hooks.ConfigChange));
+  assert.ok(Array.isArray(settings.hooks.Stop));
+  assert.ok(Array.isArray(settings.hooks.SessionEnd));
+});
+
+test('implementation-capable agents declare worktree isolation', () => {
+  const isolatedAgents = [
+    'database-engineer',
+    'backend-engineer',
+    'frontend-engineer',
+    'mobile-engineer',
+    'fullstack-developer',
+    'qa-tester',
+    'devops-engineer'
+  ];
+
+  for (const agentName of isolatedAgents) {
+    const content = fs.readFileSync(
+      path.join(projectRoot, '.claude', 'agents', `${agentName}.md`),
+      'utf8'
+    );
+    assert.match(content, /^isolation:\s*worktree$/m, `${agentName} must declare worktree isolation`);
+  }
+});
+
+test('manual company orchestration skills exist and are manual-only', () => {
+  const manualSkills = [
+    '.claude/skills/eup-market-cycle/SKILL.md',
+    '.claude/skills/eup-dev-intake/SKILL.md',
+    '.claude/skills/eup-implement/SKILL.md',
+    '.claude/skills/eup-company-status/SKILL.md'
+  ];
+
+  for (const relativePath of manualSkills) {
+    const content = fs.readFileSync(path.join(projectRoot, relativePath), 'utf8');
+    assert.match(content, /^disable-model-invocation:\s*true$/m, `${relativePath} must be manual-only`);
+  }
+});
+
+test('subagent context injects team metadata when agent is a teammate', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-team-context-'));
+  const homeDir = path.join(tmpDir, 'home');
+  fs.mkdirSync(homeDir, { recursive: true });
+  writeTeamConfig(homeDir, 'market-cycle', [
+    { name: 'lead', agentId: 'lead@market-cycle', agentType: 'lead' },
+    { name: 'research-1', agentId: 'research-1@market-cycle', agentType: 'market-researcher' },
+    { name: 'ga4-1', agentId: 'ga4-1@market-cycle', agentType: 'ga4-analyst' }
+  ]);
+  writeTeamTask(homeDir, 'market-cycle', {
+    id: '1',
+    subject: 'Research JTBD',
+    status: 'completed'
+  });
+  writeTeamTask(homeDir, 'market-cycle', {
+    id: '2',
+    subject: 'Analyze GA4',
+    owner: 'research-1',
+    status: 'pending',
+    blockedBy: ['1']
+  });
+  writeActiveStrategy(tmpDir, 'reports/strategy/demo/strategy-memo.md');
+  writeActivePlan(tmpDir, 'plans/demo/plan.md');
+  fs.mkdirSync(path.join(tmpDir, 'reports', 'strategy', 'demo'), { recursive: true });
+  fs.mkdirSync(path.join(tmpDir, 'plans', 'demo'), { recursive: true });
+  fs.writeFileSync(path.join(tmpDir, 'reports', 'strategy', 'demo', 'strategy-memo.md'), '# Strategy Memo\n');
+  fs.writeFileSync(path.join(tmpDir, 'plans', 'demo', 'plan.md'), '# Plan\n\nApproval Status: pending\n');
+
+  const hook = runHook(
+    '.claude/hooks/subagent-context.cjs',
+    {
+      session_id: 'team-agent',
+      agent_id: 'research-1@market-cycle',
+      agent_type: 'market-researcher'
+    },
+    tmpDir,
+    { HOME: homeDir }
+  );
+  const parsed = JSON.parse(hook.stdout);
+  const context = parsed.hookSpecificOutput.additionalContext;
+
+  assert.equal(hook.status, 0);
+  assert.match(context, /Team: market-cycle/);
+  assert.match(context, /Teammate: research-1/);
+  assert.match(context, /Peers: lead \(lead\), ga4-1 \(ga4-analyst\)/);
+  assert.match(context, /Team tasks: 1\/2 complete/);
+  assert.match(context, /Assigned tasks: #2 Analyze GA4 \[pending\]/);
+  assert.match(context, /Active strategy artifact: reports\/strategy\/demo\/strategy-memo\.md/);
+  assert.match(context, /Active plan artifact: plans\/demo\/plan\.md/);
+});
+
+test('task completed hook updates team runtime state and reports progress', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-task-completed-'));
+  const homeDir = path.join(tmpDir, 'home');
+  fs.mkdirSync(homeDir, { recursive: true });
+  writeTeamTask(homeDir, 'feature-rollout', {
+    id: '1',
+    subject: 'Implement backend',
+    status: 'completed'
+  });
+  writeTeamTask(homeDir, 'feature-rollout', {
+    id: '2',
+    subject: 'Implement frontend',
+    status: 'pending',
+    blockedBy: ['1']
+  });
+
+  const hook = runHook(
+    '.claude/hooks/task-completed-handler.cjs',
+    {
+      team_name: 'feature-rollout',
+      teammate_name: 'backend-1',
+      task_id: '1',
+      task_subject: 'Implement backend',
+      task_metadata: { phase: 'backend' }
+    },
+    tmpDir,
+    { HOME: homeDir }
+  );
+  const parsed = JSON.parse(hook.stdout);
+  const runtimeState = JSON.parse(
+    fs.readFileSync(path.join(tmpDir, '.claude', 'state', 'team-runtime.json'), 'utf8')
+  );
+
+  assert.equal(hook.status, 0);
+  assert.match(parsed.hookSpecificOutput.additionalContext, /Progress: 1\/2 complete/);
+  assert.equal(runtimeState.activeTeam, 'feature-rollout');
+  assert.equal(runtimeState.phase, 'backend');
+  assert.equal(runtimeState.progress.completed, 1);
+});
+
+test('teammate idle hook blocks when required artifact is missing', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-teammate-idle-block-'));
+  const homeDir = path.join(tmpDir, 'home');
+  fs.mkdirSync(homeDir, { recursive: true });
+  writeTeamTask(homeDir, 'market-cycle', {
+    id: '1',
+    subject: 'Write strategy memo',
+    owner: 'strategist-1',
+    status: 'completed',
+    metadata: {
+      requiredArtifacts: ['reports/strategy/20260401-demo/strategy-memo.md'],
+      enforceArtifactsOnIdle: true
+    }
+  });
+
+  const hook = runHook(
+    '.claude/hooks/teammate-idle-handler.cjs',
+    {
+      team_name: 'market-cycle',
+      teammate_name: 'strategist-1'
+    },
+    tmpDir,
+    { HOME: homeDir }
+  );
+
+  assert.equal(hook.status, 2);
+  assert.match(hook.stderr, /Missing required artifact/);
+});
+
+test('teammate idle hook suggests unblocked work when artifacts are satisfied', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-teammate-idle-ok-'));
+  const homeDir = path.join(tmpDir, 'home');
+  fs.mkdirSync(homeDir, { recursive: true });
+  fs.mkdirSync(path.join(tmpDir, 'reports', 'strategy', '20260401-demo'), { recursive: true });
+  fs.writeFileSync(
+    path.join(tmpDir, 'reports', 'strategy', '20260401-demo', 'strategy-memo.md'),
+    '# Strategy Memo\n'
+  );
+  writeTeamTask(homeDir, 'market-cycle', {
+    id: '1',
+    subject: 'Write strategy memo',
+    owner: 'strategist-1',
+    status: 'completed',
+    metadata: {
+      requiredArtifacts: ['reports/strategy/20260401-demo/strategy-memo.md'],
+      enforceArtifactsOnIdle: true
+    }
+  });
+  writeTeamTask(homeDir, 'market-cycle', {
+    id: '2',
+    subject: 'Prepare dev intake',
+    status: 'pending',
+    blockedBy: ['1']
+  });
+
+  const hook = runHook(
+    '.claude/hooks/teammate-idle-handler.cjs',
+    {
+      team_name: 'market-cycle',
+      teammate_name: 'strategist-1'
+    },
+    tmpDir,
+    { HOME: homeDir }
+  );
+  const parsed = JSON.parse(hook.stdout);
+
+  assert.equal(hook.status, 0);
+  assert.match(parsed.hookSpecificOutput.additionalContext, /Unblocked tasks: #2 Prepare dev intake/);
+});
+
+test('statusline renders active team, task progress, and plan state', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-statusline-'));
+  fs.mkdirSync(path.join(tmpDir, '.claude', 'state'), { recursive: true });
+  fs.mkdirSync(path.join(tmpDir, 'plans', 'launch'), { recursive: true });
+  fs.mkdirSync(path.join(tmpDir, 'reports', 'strategy', 'launch'), { recursive: true });
+  fs.writeFileSync(
+    path.join(tmpDir, 'plans', 'launch', 'plan.md'),
+    '# Plan\n\nApproval Status: pending\n'
+  );
+  fs.writeFileSync(
+    path.join(tmpDir, 'reports', 'strategy', 'launch', 'strategy-memo.md'),
+    [
+      '# Strategy Memo',
+      '',
+      '## Đối Tượng Ưu Tiên (Target Audience)',
+      '- Learners',
+      '',
+      '## Định Vị (Positioning)',
+      '- Value',
+      '',
+      '## Ưu Tiên Kênh (Channel Priorities)',
+      '- Search',
+      '',
+      '## Thí Nghiệm Ưu Tiên (Priority Experiments)',
+      '- Landing page test',
+      '',
+      '## Ghi Chú Đo Lường (Measurement Notes)',
+      '- KPI notes',
+      '',
+      '## Yêu Cầu Cho Dev (Concrete Dev Asks)',
+      '- Build flow',
+      '',
+      '## Gói Bàn Giao PM (PM Intake Packet)',
+      '- Scope MVP',
+      '',
+      '## Bàn Giao Vai Trò (Role Handoffs)',
+      '- PM next',
+      ''
+    ].join('\n')
+  );
+  writeActivePlan(tmpDir, 'plans/launch/plan.md');
+  writeActiveStrategy(tmpDir, 'reports/strategy/launch/strategy-memo.md');
+  fs.writeFileSync(
+    path.join(tmpDir, '.claude', 'state', 'team-runtime.json'),
+    `${JSON.stringify({
+      activeTeam: 'launch-team',
+      phase: 'implementation',
+      progress: { completed: 2, total: 5 }
+    }, null, 2)}\n`
+  );
+
+  const result = spawnSync(
+    process.execPath,
+    [path.join(projectRoot, '.claude', 'statusline.cjs')],
+    {
+      cwd: tmpDir,
+      env: {
+        ...process.env,
+        CLAUDE_PROJECT_DIR: tmpDir
+      },
+      encoding: 'utf8'
+    }
+  );
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /team:launch-team/);
+  assert.match(result.stdout, /tasks:2\/5/);
+  assert.match(result.stdout, /phase:implementation/);
+  assert.match(result.stdout, /strategy:ready/);
+  assert.match(result.stdout, /plan:pending/);
 });
 
 test('subagent stop blocks missing handoff contract', () => {
@@ -844,7 +1287,7 @@ test('workflow e2e smoke: research -> strategy -> plan -> approval -> implementa
     tmpDir
   );
   const blockedPmContext = JSON.parse(blockedPmIntake.stdout).hookSpecificOutput.additionalContext;
-  assert.match(blockedPmContext, /\/eup-pm is BLOCKED/);
+  assert.match(blockedPmContext, /\/eup-pm and \/eup-dev-intake are BLOCKED/);
 
   runHook(
     '.claude/hooks/subagent-context.cjs',

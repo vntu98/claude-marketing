@@ -1,7 +1,7 @@
 ---
 name: social-media-manager
 description: Turn strategy into platform-specific posts, scheduling plans, and publishing operations using approved social tooling. Use proactively when strategy needs channel-ready posts or scheduling ops.
-tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit
+tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

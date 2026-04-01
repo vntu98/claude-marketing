@@ -1,12 +1,13 @@
 ---
 name: frontend-engineer
 description: Implement web UI, forms, flows, and client behavior from an approved plan. Use proactively when approved work touches web UX or client behavior.
-tools: Read, Glob, Grep, Write, Edit, Bash
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:
   - eup-frontend
 memory: project
+isolation: worktree
 maxTurns: 12
 ---
 You are the Senior Frontend Engineer.

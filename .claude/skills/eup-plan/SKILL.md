@@ -1,6 +1,7 @@
 ---
 name: eup-plan
 description: "When the user wants a detailed technical plan, system architecture, tech stack decision, or implementation roadmap. Also use when the user mentions 'architecture,' 'system design,' 'tech stack,' 'database design,' 'API design,' 'how should we build this,' 'technical plan,' 'implementation plan,' 'design the system,' 'infrastructure,' 'choose technology,' 'solution architecture,' or 'draw me the system.' Use after eup-pm has broken down tasks, or directly for technical planning."
+disable-model-invocation: true
 context: fork
 agent: implementation-planner
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
@@ -121,6 +122,8 @@ Save the plan to `./plans/` immediately, before asking for approval:
 ```
 plans/[project-name]/
 ├── plan.md                    # Overview, frontmatter, approval state
+├── task-graph.json            # Machine-readable execution contract
+├── ownership-matrix.md        # Human-readable file ownership and parallel lanes
 ├── phase-01-foundation.md     # Setup + scaffolding
 ├── phase-02-data-and-backend.md
 ├── phase-03-product-and-ux.md
@@ -149,6 +152,11 @@ And the body must include the exact approval gate line:
 ```markdown
 Approval Status: pending
 ```
+
+### Additional artifacts
+
+- `task-graph.json` must define task ids, owners, dependencies, file globs, acceptance criteria, validation commands, and blocking policy
+- `ownership-matrix.md` must map every parallel lane to an exclusive file surface or worktree
 
 ### Phase File Template
 
@@ -196,10 +204,11 @@ For full plan template, see [references/plan-template.md](references/plan-templa
 After completing the plan, you MUST:
 
 1. Write `plan.md` and all `phase-0X-*.md` files with `Approval Status: pending`
-2. The written `plan.md` becomes the active plan automatically, so approval gating will follow that file.
-3. Present the saved path plus a concise summary to the user
-4. Wait for explicit approval
-5. Update the same `plan.md` to `Approval Status: approved`
+2. Write `task-graph.json` and `ownership-matrix.md` in the same plan folder
+3. The written `plan.md` becomes the active plan automatically, so approval gating will follow that file.
+4. Present the saved path plus a concise summary to the user
+5. Wait for explicit approval
+6. Update the same `plan.md` to `Approval Status: approved`
 
 ### Plan Summary to Show the User
 

@@ -1,9 +1,9 @@
 ---
 name: marketing-strategist
 description: Convert market research, competitor intel, and GA4 data into a focused marketing strategy and clear dev requests. Use proactively when evidence needs to become channel priorities or dev asks.
-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit
+tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
-model: sonnet
+model: opus
 skills:
   - eup-strategy
   - eup-psychology

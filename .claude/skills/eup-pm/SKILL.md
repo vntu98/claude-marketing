@@ -1,7 +1,8 @@
 ---
 name: eup-pm
 description: "When the user wants to orchestrate dev work, break down a marketing strategy into technical tasks, track project progress, or coordinate the dev team. Also use when the user mentions 'project plan,' 'task breakdown,' 'sprint planning,' 'dev tasks,' 'what should we build,' 'prioritize tasks,' 'project status,' 'coordinate development,' 'assign tasks,' 'roadmap,' or 'backlog.' This is the entry point for turning marketing strategies into technical execution."
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Agent
+disable-model-invocation: true
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Agent, TeamCreate, TeamDelete, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
 metadata:
   version: 2.2.0
 ---
@@ -92,6 +93,7 @@ If the user wants to move fast, shorten the plan, not the workflow.
 ## Phase 4: Controller Brief
 
 Produce a brief that the main session/controller can execute without reinterpretation.
+When this brief should become a durable handoff, save it to `reports/strategy/YYYYMMDD-[slug]/dev-intake.md`.
 
 ### Required Sections
 
@@ -168,6 +170,7 @@ If the user asks for project status:
 - Do not claim agents were spawned if they were not.
 - Do not mix PM output with implementation details better owned by engineering.
 - Do not bury the approval requirement.
+- Do not skip the durable `dev-intake.md` artifact when planning or orchestration should consume the output later.
 
 ---
 

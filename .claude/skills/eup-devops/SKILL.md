@@ -1,6 +1,7 @@
 ---
 name: eup-devops
 description: "When the user wants to deploy, set up CI/CD, containerize, or manage infrastructure. Also use when the user mentions 'deploy,' 'deployment,' 'CI/CD,' 'Docker,' 'Kubernetes,' 'hosting,' 'infrastructure,' 'pipeline,' 'GitHub Actions,' 'Vercel,' 'Cloudflare,' 'Railway,' 'environment variables,' 'production,' 'staging,' 'go live,' or 'ship it.' Use as the final step before going live."
+disable-model-invocation: true
 context: fork
 agent: devops-engineer
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash

@@ -24,6 +24,7 @@ Before implementing tracking, understand:
 3. **Technical Context** - What's the tech stack? Any privacy/compliance requirements?
 
 If GA4 credentials exist, prefer `node tools/ga4.js presets run --preset <name> --property "$GA4_PROPERTY_ID"` or `node tools/ga4.js ...` for live property data before giving recommendations.
+When the task is part of `/eup-market-cycle`, save durable findings as `reports/research/YYYYMMDD-[slug]/ga4-insights.md` and `reports/research/YYYYMMDD-[slug]/channel-scorecard.md`.
 
 ---
 
@@ -279,6 +280,13 @@ dataLayer.push({
 |------------|-------|----------|
 | Signup | signup_completed | Once per session |
 ```
+
+### Market Cycle Artifact Mode
+
+When the output should feed strategy or PM intake, create:
+
+- `ga4-insights.md`: KPI snapshot, anomalies, funnel drop-offs, instrumentation gaps, and recommended actions
+- `channel-scorecard.md`: per-channel signal quality, efficiency notes, confidence level, and next action
 
 ---
 

@@ -131,3 +131,34 @@ Rules:
 ### Threats
 - ...
 ```
+
+## Optional analytics artifacts when the market cycle includes live or dry-run data
+
+### ga4-insights.md
+
+```markdown
+# GA4 Insights
+
+## KPI Snapshot
+- ...
+
+## Funnel Drop-Offs
+- ...
+
+## Instrumentation Gaps
+- ...
+
+## Recommended Actions
+- ...
+```
+
+### channel-scorecard.md
+
+```markdown
+# Channel Scorecard
+
+| Channel | Signal | Quality | Risk | Next Action |
+|---------|--------|---------|------|-------------|
+| Search | ... | ... | ... | ... |
+| Social | ... | ... | ... | ... |
+```

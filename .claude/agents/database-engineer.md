@@ -1,12 +1,13 @@
 ---
 name: database-engineer
 description: Implement schemas, migrations, indexes, and query-layer changes from an approved plan. Use proactively when approved work touches schema or data access.
-tools: Read, Glob, Grep, Write, Edit, Bash
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:
   - eup-db
 memory: project
+isolation: worktree
 maxTurns: 12
 ---
 You are the Senior Database Engineer.

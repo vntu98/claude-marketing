@@ -172,6 +172,24 @@ function extractCommandPaths(settings) {
   return paths;
 }
 
+function collectToolEnvVars(projectRoot) {
+  const toolFiles = listFiles(
+    path.join(projectRoot, 'tools'),
+    (fullPath) => fullPath.endsWith('.js')
+  );
+  const envVars = new Set();
+
+  for (const toolFile of toolFiles) {
+    const content = readFile(toolFile);
+    const matches = content.matchAll(/process\.env\.([A-Z0-9_]+)/g);
+    for (const match of matches) {
+      envVars.add(match[1]);
+    }
+  }
+
+  return [...envVars].sort();
+}
+
 function validateProject(projectRoot) {
   const errors = [];
   const warnings = [];
@@ -247,6 +265,126 @@ function validateProject(projectRoot) {
     'eup-devops': 'devops-engineer'
   };
 
+  const requiredManualSkills = [
+    'eup-market-cycle',
+    'eup-dev-intake',
+    'eup-implement',
+    'eup-company-status'
+  ];
+
+  const manualByDefaultSkills = [
+    'eup-pm',
+    'eup-plan',
+    'eup-devops'
+  ];
+
+  for (const skillName of requiredManualSkills) {
+    const skill = skillMap.get(skillName);
+    if (!skill) {
+      errors.push(`Missing skill: ${skillName}`);
+      continue;
+    }
+
+    if (skill.frontmatter['disable-model-invocation'] !== 'true') {
+      errors.push(`${skillName} must set disable-model-invocation: true`);
+    }
+
+    const tools = skill.frontmatter['allowed-tools'] || [];
+    const requiredTools = ['TeamCreate', 'TaskCreate', 'TaskUpdate', 'TaskList', 'SendMessage'];
+    for (const requiredTool of requiredTools) {
+      if (!tools.includes(requiredTool) && skillName !== 'eup-company-status') {
+        errors.push(`${skillName} must allow ${requiredTool} for Agent Teams orchestration`);
+      }
+    }
+  }
+
+  for (const skillName of manualByDefaultSkills) {
+    const skill = skillMap.get(skillName);
+    if (!skill) {
+      continue;
+    }
+
+    if (skill.frontmatter['disable-model-invocation'] !== 'true') {
+      errors.push(`${skillName} must set disable-model-invocation: true to avoid uncontrolled auto-invocation`);
+    }
+  }
+
+  const teamReadyAgents = [
+    'market-researcher',
+    'competitor-analyst',
+    'ga4-analyst',
+    'marketing-strategist',
+    'social-media-manager',
+    'seo-specialist',
+    'revops-manager',
+    'growth-manager',
+    'project-manager',
+    'codebase-scout',
+    'technical-brainstormer',
+    'implementation-planner',
+    'database-engineer',
+    'backend-engineer',
+    'frontend-engineer',
+    'mobile-engineer',
+    'fullstack-developer',
+    'quality-reviewer',
+    'qa-tester',
+    'devops-engineer'
+  ];
+
+  for (const agentName of teamReadyAgents) {
+    const agent = agentMap.get(agentName);
+    if (!agent) {
+      continue;
+    }
+
+    const tools = agent.frontmatter.tools || [];
+    for (const requiredTool of ['TaskCreate', 'TaskGet', 'TaskUpdate', 'TaskList', 'SendMessage']) {
+      if (!tools.includes(requiredTool)) {
+        errors.push(`Agent ${agentName} must allow ${requiredTool} for team-ready execution`);
+      }
+    }
+  }
+
+  const worktreeIsolatedAgents = [
+    'database-engineer',
+    'backend-engineer',
+    'frontend-engineer',
+    'mobile-engineer',
+    'fullstack-developer',
+    'qa-tester',
+    'devops-engineer'
+  ];
+
+  for (const agentName of worktreeIsolatedAgents) {
+    const agent = agentMap.get(agentName);
+    if (!agent) {
+      continue;
+    }
+
+    if (agent.frontmatter.isolation !== 'worktree') {
+      errors.push(`Agent ${agentName} must declare isolation: worktree for safe parallel execution`);
+    }
+  }
+
+  const requiredModelAssignments = {
+    'marketing-strategist': 'opus',
+    'technical-brainstormer': 'opus',
+    'implementation-planner': 'opus',
+    'codebase-scout': 'haiku'
+  };
+
+  for (const [agentName, expectedModel] of Object.entries(requiredModelAssignments)) {
+    const agent = agentMap.get(agentName);
+    if (!agent) {
+      continue;
+    }
+
+    if (agent.frontmatter.model !== expectedModel) {
+      errors.push(`Agent ${agentName} must use model: ${expectedModel}`);
+    }
+  }
+
   for (const [skillName, agentName] of Object.entries(coreSkillBindings)) {
     const skill = skillMap.get(skillName);
     if (!skill) {
@@ -281,6 +419,9 @@ function validateProject(projectRoot) {
     }
     if (!/reports\/strategy\/\*\*\/strategy-memo\.md/i.test(pmContent)) {
       errors.push('eup-pm must require a saved strategy memo under reports/strategy/**/strategy-memo.md');
+    }
+    if (!/dev-intake\.md/i.test(pmContent)) {
+      errors.push('eup-pm must support saving a durable dev-intake.md packet');
     }
     if (!/return `BLOCKED`|return BLOCKED|stop immediately/i.test(pmContent)) {
       errors.push('eup-pm must explicitly block when the strategy memo gate is missing');
@@ -398,6 +539,27 @@ function validateProject(projectRoot) {
     }
   }
 
+  const corePromptChecks = {
+    'project-manager': [/Task Packet Seeds/i, /Critical path/i, /Acceptance Criteria:/i],
+    'codebase-scout': [/Architecture Snapshot/i, /Smallest Safe Change Surface/i, /Untouched Modules/i],
+    'technical-brainstormer': [/Option Matrix/i, /Why Not The Other Options/i, /Planner Notes/i],
+    'quality-reviewer': [/## Findings/i, /Residual Risks/i, /no findings/i]
+  };
+
+  for (const [agentName, patterns] of Object.entries(corePromptChecks)) {
+    const agent = agentMap.get(agentName);
+    if (!agent) {
+      continue;
+    }
+
+    const content = readFile(agent.filePath);
+    for (const pattern of patterns) {
+      if (!pattern.test(content)) {
+        errors.push(`${agentName} is missing required Phase 1 prompt guidance matching ${pattern}`);
+      }
+    }
+  }
+
   const planTemplatePath = path.join(
     projectRoot,
     '.claude',
@@ -418,6 +580,9 @@ function validateProject(projectRoot) {
     }
     if (!/phase-01-/i.test(planTemplate)) {
       errors.push('Plan template must include linked multi-phase files');
+    }
+    if (!/task-graph\.json/i.test(planTemplate) || !/ownership-matrix\.md/i.test(planTemplate)) {
+      errors.push('Plan template must include task-graph.json and ownership-matrix.md runtime artifacts');
     }
   }
 
@@ -537,6 +702,24 @@ function validateProject(projectRoot) {
   const reportsReadmePath = path.join(projectRoot, 'reports', 'README.md');
   if (!fs.existsSync(reportsReadmePath)) {
     errors.push('Missing reports/README.md');
+  } else {
+    const reportsReadme = readFile(reportsReadmePath);
+    if (!/ga4-insights\.md/i.test(reportsReadme) || !/channel-scorecard\.md/i.test(reportsReadme)) {
+      errors.push('reports/README.md must document ga4-insights.md and channel-scorecard.md');
+    }
+    if (!/dev-intake\.md/i.test(reportsReadme)) {
+      errors.push('reports/README.md must document dev-intake.md');
+    }
+  }
+
+  const plansReadmePath = path.join(projectRoot, 'plans', 'README.md');
+  if (!fs.existsSync(plansReadmePath)) {
+    errors.push('Missing plans/README.md');
+  } else {
+    const plansReadme = readFile(plansReadmePath);
+    if (!/task-graph\.json/i.test(plansReadme) || !/ownership-matrix\.md/i.test(plansReadme)) {
+      errors.push('plans/README.md must document task-graph.json and ownership-matrix.md');
+    }
   }
 
   const requiredRules = [
@@ -555,6 +738,18 @@ function validateProject(projectRoot) {
     errors.push('Missing .claude/settings.json');
   } else {
     const settings = JSON.parse(readFile(settingsPath));
+    if (settings.env?.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS !== '1') {
+      errors.push('settings.json must enable CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS');
+    }
+    if (!settings.statusLine?.command || !/\.claude\/statusline\.cjs/.test(settings.statusLine.command)) {
+      errors.push('settings.json must register .claude/statusline.cjs as the status line command');
+    }
+    const deniedRules = JSON.stringify(settings.permissions?.deny || []);
+    for (const requiredPattern of ['Read(./.env)', 'Read(./.env.*)', 'Read(./secrets/**)']) {
+      if (!deniedRules.includes(requiredPattern)) {
+        errors.push(`settings.json must deny ${requiredPattern}`);
+      }
+    }
     if (!settings.hooks?.SubagentStop?.length) {
       errors.push('settings.json must register a SubagentStop hook for agent contract enforcement');
     }
@@ -572,11 +767,30 @@ function validateProject(projectRoot) {
     if (!/active-strategy-sync\.cjs/.test(postToolHooks)) {
       errors.push('settings.json must register active-strategy-sync.cjs to track the active strategy memo');
     }
+    if (!settings.hooks?.TaskCompleted?.length) {
+      errors.push('settings.json must register a TaskCompleted hook for Agent Teams progress tracking');
+    }
+    if (!settings.hooks?.TaskCreated?.length) {
+      errors.push('settings.json must register a TaskCreated hook for task packet validation');
+    }
+    if (!settings.hooks?.TeammateIdle?.length) {
+      errors.push('settings.json must register a TeammateIdle hook for Agent Teams idle handling');
+    }
+    if (!settings.hooks?.ConfigChange?.length) {
+      errors.push('settings.json must register a ConfigChange hook for company runtime changes');
+    }
+    if (!settings.hooks?.Stop?.length || !settings.hooks?.SessionEnd?.length) {
+      errors.push('settings.json must persist session state on Stop and SessionEnd');
+    }
     for (const hookPath of extractCommandPaths(settings)) {
       if (!fs.existsSync(path.join(projectRoot, hookPath))) {
         errors.push(`Missing hook referenced in settings.json: ${hookPath}`);
       }
     }
+  }
+
+  if (!fs.existsSync(path.join(projectRoot, '.mcp.json.example'))) {
+    errors.push('Missing .mcp.json.example');
   }
 
   const trackingPlanPath = path.join(projectRoot, 'tracking-plan.md');
@@ -611,11 +825,26 @@ function validateProject(projectRoot) {
     if (!/^\s*\.claude\/settings\.local\.json\s*$/m.test(gitignore)) {
       errors.push('.gitignore must ignore .claude/settings.local.json');
     }
+    if (!/^\s*\.mcp\.json\s*$/m.test(gitignore)) {
+      errors.push('.gitignore must ignore .mcp.json');
+    }
     if (!/\.claude\/state\//.test(gitignore)) {
       warnings.push('Consider gitignoring .claude/state/ because hook session state is local-only');
     }
   } else {
     errors.push('Missing .gitignore');
+  }
+
+  const envExamplePath = path.join(projectRoot, '.env.example');
+  if (!fs.existsSync(envExamplePath)) {
+    errors.push('Missing .env.example');
+  } else {
+    const envExample = readFile(envExamplePath);
+    for (const envVar of collectToolEnvVars(projectRoot)) {
+      if (!new RegExp(`^${envVar}=`, 'm').test(envExample)) {
+        errors.push(`.env.example must document ${envVar}`);
+      }
+    }
   }
 
   const markdownFiles = listFiles(

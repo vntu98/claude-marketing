@@ -1,6 +1,8 @@
 # EUP — Unified Marketing + Dev Pipeline
 
-An AI company-first `eup-*` skill catalog plus a project-level subagent team in `.claude/agents/`. The default company context is a language-learning app business: market research, competitor analysis, GA4 and tracking, strategy synthesis, social distribution, PM orchestration, approval-gated planning, implementation, review, and release.
+An AI company-first `eup-*` skill catalog plus a project-level agent roster in `.claude/agents/`. The default company context is a language-learning app business: market research, competitor analysis, GA4 and tracking, strategy synthesis, social distribution, PM orchestration, approval-gated planning, implementation, review, and release.
+
+This repository assumes Claude Code CLI with official Agent Teams enabled. The repo is the source of truth for roles, hooks, skills, artifact contracts, and approval gates; runtime team and task state stay in Claude Code local storage.
 
 Every agent in this company operates at a senior or staff-level bar: explicit trade-offs, evidence-backed decisions, failure-mode awareness, and disciplined handoffs.
 
@@ -15,17 +17,23 @@ Every agent in this company operates at a senior or staff-level bar: explicit tr
 ```
 /eup-context
       ↓
-market-researcher + competitor-analyst + ga4-analyst
+/eup-market-cycle
       ↓
-/eup-strategy + marketing-strategist
+market-researcher + competitor-analyst + ga4-analyst + seo-specialist|growth-manager
       ↓
-social-media-manager + seo-specialist + revops-manager + growth-manager (when relevant)
+marketing-strategist → reports/strategy/YYYYMMDD-[slug]/strategy-memo.md
       ↓
-/eup-pm + /eup-scout + /eup-brainstorm + /eup-plan
+/eup-dev-intake
+      ↓
+project-manager + codebase-scout + technical-brainstormer
+      ↓
+/eup-plan → plans/<slug>/plan.md + task-graph.json + ownership-matrix.md
       ↓
 ⛔ USER APPROVAL REQUIRED
       ↓
-/eup-db + /eup-backend + /eup-frontend + /eup-mobile + /eup-code
+/eup-implement
+      ↓
+database-engineer + backend-engineer + frontend-engineer + mobile-engineer|fullstack-developer
       ↓
 /eup-review → /eup-test → /eup-devops
 ```
@@ -81,6 +89,10 @@ social-media-manager + seo-specialist + revops-manager + growth-manager (when re
 
 | Command | Role |
 |---------|------|
+| `eup-market-cycle` | Manual marketing intelligence run using Agent Teams and durable research artifacts |
+| `eup-dev-intake` | Manual PM/scout/brainstorm intake that writes `dev-intake.md` and feeds planning |
+| `eup-implement` | Manual engineering execution from an approved plan and task graph |
+| `eup-company-status` | Manual company status summary across strategy, plan, approval, and team progress |
 | `eup-scout` | Scout the codebase before planning or implementation |
 | `eup-brainstorm` | Explore technical options and recommend one path |
 | `eup-plan` | Create the approved multi-phase implementation plan |
@@ -89,14 +101,14 @@ social-media-manager + seo-specialist + revops-manager + growth-manager (when re
 ## Execution Rules
 
 1. Run `/eup-context` first — skills and agents read `.claude/eup-context.md`
-2. Marketing evidence flows through `market-researcher` → `competitor-analyst` → `ga4-analyst` → `marketing-strategist`
-3. `marketing-strategist` must save the handoff artifact at `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md` before `/eup-pm` intake starts
-4. `/eup-pm` is blocked until that saved strategy memo is complete
-5. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` and that plan becomes the active plan automatically
+2. `/eup-market-cycle` should save research artifacts under `reports/research/YYYYMMDD-[slug]/`, including `ga4-insights.md` and `channel-scorecard.md` when analytics are in scope
+3. `marketing-strategist` must save the handoff artifact at `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md` before dev intake starts
+4. `/eup-dev-intake` is blocked until that saved strategy memo is complete, and it should save `reports/strategy/YYYYMMDD-[slug]/dev-intake.md`
+5. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` plus `task-graph.json` and `ownership-matrix.md`; that plan becomes the active plan automatically
 6. No source-code implementation before the user explicitly approves the active plan
-7. The main session orchestrates subagents; subagents report back and do not recursively spawn more subagents
-8. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files.
-9. Each implementation agent owns distinct files — zero overlap
+7. The main session is the team lead. Teammates claim tasks, report progress through native task updates, and do not recursively spawn more teammates
+8. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files
+9. Each implementation agent owns distinct files or worktrees — zero overlap
 
 ## Senior Company Rule
 
@@ -109,6 +121,8 @@ social-media-manager + seo-specialist + revops-manager + growth-manager (when re
 - If the user does not name a specific app, assume company-level context from `.claude/eup-context.md`.
 - `tracking-plan.md` is the canonical measurement plan for GA4, funnel instrumentation, and activation metrics.
 - Social scheduling should be prepared with dry-run tooling first (`tools/buffer.js`, `tools/zapier.js`) before any live publish action.
+- Marketing and growth data access should prefer local read-only tooling (`tools/ga4.js`, `tools/google-search-console.js`, `tools/semrush.js`, ads tools) and only perform live mutation when the user explicitly asks.
+- Optional MCP servers are configured through `.mcp.json` using the example in `.mcp.json.example`.
 
 ## Reference Baseline
 All workflow-critical skills, hooks, and tools should live inside this repository so the company can operate without depending on external reference folders.

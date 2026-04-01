@@ -32,7 +32,7 @@ Every company role is senior-only. Each agent must operate like a senior or staf
 | `seo-specialist` | SEO audit, indexation, site architecture, and technical SEO findings | Optional docs/plans/reports only |
 | `revops-manager` | Lead lifecycle, routing, CRM automation design | Optional docs/plans only |
 | `growth-manager` | Signup, activation, paywall, pricing, experiment backlog | Optional docs/plans only |
-| `project-manager` | Backlog, ownership, sequencing | Optional docs/plans only |
+| `project-manager` | Backlog, ownership, sequencing, and dev intake packet | Optional `reports/strategy/**/dev-intake.md`, docs, and plans only |
 | `codebase-scout` | Codebase topology and risks | No |
 | `technical-brainstormer` | Trade-off analysis and recommendation | No |
 | `implementation-planner` | Approved implementation plan | Yes, `plans/**` only |
@@ -50,7 +50,8 @@ Every company role is senior-only. Each agent must operate like a senior or staf
 - Research and review roles do not quietly edit source code.
 - Research roles may write `reports/**`, measurement docs, and tracking plans, but not product code.
 - Marketing ops roles can write docs, plans, or reports, but they do not mutate product code.
-- Growth and PM roles can write docs or plans, but they do not mutate product code.
+- Growth and PM roles can write docs, plans, or dev intake packets, but they do not mutate product code.
 - Planner owns `plans/**`; engineers do not rewrite the plan without explicit instruction.
 - Tester can add tests in assigned scope but does not rewrite product code unless the task explicitly includes it.
 - DevOps never deploys silently.
+- In Agent Teams mode, teammates claim tasks explicitly, respect file ownership, and send actionable completion or blocker messages back to the lead.

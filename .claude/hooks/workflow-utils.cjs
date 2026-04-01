@@ -2,6 +2,7 @@
 'use strict';
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const PLAN_APPROVED_PATTERN = /^\s*approval status\s*:\s*approved\s*$/im;
@@ -9,6 +10,9 @@ const PLAN_PENDING_PATTERN = /^\s*approval status\s*:\s*pending\s*$/im;
 const AGENT_SESSION_STATE_FILE = path.join('.claude', 'state', 'agent-sessions.json');
 const ACTIVE_PLAN_STATE_FILE = path.join('.claude', 'state', 'active-plan.json');
 const ACTIVE_STRATEGY_STATE_FILE = path.join('.claude', 'state', 'active-strategy.json');
+const TEAM_RUNTIME_STATE_FILE = path.join('.claude', 'state', 'team-runtime.json');
+const SESSION_STATE_LATEST_FILE = path.join('.claude', 'session-state', 'latest.md');
+const SESSION_STATE_ARCHIVE_DIR = path.join('.claude', 'session-state', 'archive');
 const EXEMPT_PREFIXES = [
   '.claude/',
   'plans/',
@@ -102,8 +106,8 @@ const AGENT_EDIT_POLICIES = {
     allowFiles: ['README.md', 'CLAUDE.md']
   },
   'project-manager': {
-    label: 'plans and docs only',
-    allowPrefixes: ['docs/', 'plans/'],
+    label: 'strategy intake packets, plans, and docs only',
+    allowPrefixes: ['docs/', 'plans/', 'reports/strategy/'],
     allowFiles: ['README.md', 'CLAUDE.md']
   },
   'implementation-planner': {
@@ -176,6 +180,144 @@ function readJson(filePath) {
   }
 }
 
+function getClaudeRuntimeRoot() {
+  return path.join(os.homedir(), '.claude');
+}
+
+function extractTeamNameFromAgentId(agentId) {
+  const value = String(agentId || '').trim();
+  const atIndex = value.indexOf('@');
+  if (atIndex <= 0) {
+    return '';
+  }
+
+  const teamName = value.slice(atIndex + 1).trim();
+  if (!teamName || teamName.includes('/') || teamName.includes('\\') || teamName.includes('..')) {
+    return '';
+  }
+
+  return teamName;
+}
+
+function getRuntimeTeamConfigPath(teamName) {
+  if (!teamName) {
+    return '';
+  }
+
+  return path.join(getClaudeRuntimeRoot(), 'teams', teamName, 'config.json');
+}
+
+function getRuntimeTaskDir(teamName) {
+  if (!teamName) {
+    return '';
+  }
+
+  return path.join(getClaudeRuntimeRoot(), 'tasks', teamName);
+}
+
+function readTeamConfig(teamName) {
+  return readJson(getRuntimeTeamConfigPath(teamName));
+}
+
+function readTeamTasks(teamName) {
+  const taskDir = getRuntimeTaskDir(teamName);
+  if (!taskDir || !fs.existsSync(taskDir)) {
+    return [];
+  }
+
+  return fs.readdirSync(taskDir)
+    .filter((entry) => entry.endsWith('.json'))
+    .map((entry) => {
+      const filePath = path.join(taskDir, entry);
+      const task = readJson(filePath);
+      if (!task || typeof task !== 'object') {
+        return null;
+      }
+
+      return {
+        ...task,
+        _taskFilePath: filePath,
+        id: task.id || task.taskId || path.basename(entry, '.json')
+      };
+    })
+    .filter(Boolean);
+}
+
+function getTaskDependencies(task) {
+  if (!task || typeof task !== 'object') {
+    return [];
+  }
+
+  const candidate = task.blockedBy || task.blocked_by || task.dependencies || [];
+  return Array.isArray(candidate) ? candidate.filter(Boolean) : [];
+}
+
+function summarizeTeamTasks(teamName) {
+  const tasks = readTeamTasks(teamName);
+  if (!tasks.length) {
+    return {
+      pending: 0,
+      inProgress: 0,
+      completed: 0,
+      total: 0,
+      unblocked: []
+    };
+  }
+
+  const completedIds = new Set(
+    tasks
+      .filter((task) => task.status === 'completed')
+      .map((task) => String(task.id))
+  );
+
+  const summary = {
+    pending: 0,
+    inProgress: 0,
+    completed: 0,
+    total: tasks.length,
+    unblocked: []
+  };
+
+  for (const task of tasks) {
+    const status = task.status || 'pending';
+    if (status === 'completed') {
+      summary.completed += 1;
+      continue;
+    }
+
+    if (status === 'in_progress') {
+      summary.inProgress += 1;
+      continue;
+    }
+
+    summary.pending += 1;
+    const dependencies = getTaskDependencies(task).map(String);
+    const isUnblocked = dependencies.every((dependency) => completedIds.has(dependency));
+    if (isUnblocked && !task.owner) {
+      summary.unblocked.push({
+        id: String(task.id),
+        subject: task.subject || task.title || 'Untitled task',
+        metadata: task.metadata || {}
+      });
+    }
+  }
+
+  return summary;
+}
+
+function listTeamPeers(teamName, currentAgentId) {
+  const config = readTeamConfig(teamName);
+  const members = Array.isArray(config.members) ? config.members : [];
+
+  return members
+    .filter((member) => member && member.agentId !== currentAgentId)
+    .map((member) => ({
+      name: member.name || '',
+      agentType: member.agentType || member.agent_type || ''
+    }))
+    .filter((member) => member.name);
+}
+
 function listPlanFiles(projectRoot) {
   return walk(
     path.join(projectRoot, 'plans'),
@@ -204,6 +346,18 @@ function getActivePlanStatePath(projectRoot) {
 
 function getActiveStrategyStatePath(projectRoot) {
   return path.join(projectRoot, ACTIVE_STRATEGY_STATE_FILE);
+}
+
+function getTeamRuntimeStatePath(projectRoot) {
+  return path.join(projectRoot, TEAM_RUNTIME_STATE_FILE);
+}
+
+function getSessionStateLatestPath(projectRoot) {
+  return path.join(projectRoot, SESSION_STATE_LATEST_FILE);
+}
+
+function getSessionStateArchiveDir(projectRoot) {
+  return path.join(projectRoot, SESSION_STATE_ARCHIVE_DIR);
 }
 
 function readActivePlan(projectRoot) {
@@ -254,6 +408,28 @@ function readActiveStrategy(projectRoot) {
   };
 }
 
+function readTeamRuntimeState(projectRoot) {
+  const state = readJson(getTeamRuntimeStatePath(projectRoot));
+  return state && typeof state === 'object' ? state : {};
+}
+
+function writeTeamRuntimeState(projectRoot, partialState) {
+  if (!partialState || typeof partialState !== 'object') {
+    return;
+  }
+
+  const statePath = getTeamRuntimeStatePath(projectRoot);
+  const current = readTeamRuntimeState(projectRoot);
+  const nextState = {
+    ...current,
+    ...partialState,
+    updatedAt: new Date().toISOString()
+  };
+
+  fs.mkdirSync(path.dirname(statePath), { recursive: true });
+  fs.writeFileSync(statePath, `${JSON.stringify(nextState, null, 2)}\n`);
+}
+
 function setActivePlan(projectRoot, planFile) {
   if (!planFile) {
     return;
@@ -302,6 +478,204 @@ function setActiveStrategy(projectRoot, strategyFile) {
       updatedAt: new Date().toISOString()
     }, null, 2)}\n`
   );
+}
+
+function readLatestSessionState(projectRoot) {
+  return safeRead(getSessionStateLatestPath(projectRoot));
+}
+
+function formatTaskOwner(task) {
+  return task?.owner || task?.assignee || task?.metadata?.owner || '';
+}
+
+function listAssignedTeamTasks(teamName, teammateName) {
+  if (!teamName || !teammateName) {
+    return [];
+  }
+
+  const normalizedTeammate = String(teammateName).trim().toLowerCase();
+  return readTeamTasks(teamName)
+    .filter((task) => String(formatTaskOwner(task) || '').trim().toLowerCase() === normalizedTeammate)
+    .sort((left, right) => {
+      const statusWeight = { in_progress: 0, pending: 1, completed: 2 };
+      const leftWeight = statusWeight[left.status] ?? 3;
+      const rightWeight = statusWeight[right.status] ?? 3;
+      if (leftWeight !== rightWeight) {
+        return leftWeight - rightWeight;
+      }
+
+      return String(left.id).localeCompare(String(right.id));
+    });
+}
+
+function relativeLabel(projectRoot, absolutePath, fallback = 'none') {
+  return absolutePath ? normalizeRelative(projectRoot, absolutePath) : fallback;
+}
+
+function approvalSummaryLabel(projectRoot, approval) {
+  if (approval.approvedPlan) {
+    return `approved (${relativeLabel(projectRoot, approval.approvedPlan)})`;
+  }
+
+  if (approval.pendingPlan) {
+    return `pending (${relativeLabel(projectRoot, approval.pendingPlan)})`;
+  }
+
+  if (approval.resolution === 'ambiguous') {
+    return `ambiguous (${approval.totalPlans || 0} plans)`;
+  }
+
+  return 'missing';
+}
+
+function strategySummaryLabel(projectRoot, strategy) {
+  if (strategy.ready && strategy.memoPath) {
+    return `ready (${relativeLabel(projectRoot, strategy.memoPath)})`;
+  }
+
+  if (strategy.memoPath) {
+    return `incomplete (${relativeLabel(projectRoot, strategy.memoPath)})`;
+  }
+
+  if (strategy.resolution === 'ambiguous') {
+    return `ambiguous (${strategy.totalMemos || 0} memos)`;
+  }
+
+  return 'missing';
+}
+
+function isoTimestampLabel(date = new Date()) {
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  return `${year}${month}${day}-${hour}${minute}`;
+}
+
+function buildSessionStateMarkdown(projectRoot, payload = {}) {
+  const approval = readApprovalState(projectRoot);
+  const strategy = readStrategyState(projectRoot);
+  const teamRuntime = readTeamRuntimeState(projectRoot);
+  const generatedAt = new Date().toISOString();
+  const eventLabel = payload.hook_event_name || payload.source || 'unknown';
+  const activeStrategyLabel = relativeLabel(projectRoot, strategy.activeStrategy);
+  const activePlanLabel = relativeLabel(projectRoot, approval.activePlan);
+  const progress = teamRuntime.progress || {};
+  const completed = [];
+  const remaining = [];
+  const artifacts = [];
+  const checklist = [];
+
+  if (strategy.ready && strategy.memoPath) {
+    completed.push(`- Strategy memo ready: ${relativeLabel(projectRoot, strategy.memoPath)}`);
+  } else if (strategy.memoPath) {
+    remaining.push(
+      `- Finish the active strategy memo: ${relativeLabel(projectRoot, strategy.memoPath)} (missing: ${strategy.missingSections.join(', ')})`
+    );
+  } else {
+    remaining.push('- No active strategy memo recorded yet. Run the marketing cycle or save strategy-memo.md first.');
+  }
+
+  if (approval.approved && approval.approvedPlan) {
+    completed.push(`- Approved plan active: ${relativeLabel(projectRoot, approval.approvedPlan)}`);
+  } else if (approval.pendingPlan) {
+    remaining.push(`- Plan still pending user approval: ${relativeLabel(projectRoot, approval.pendingPlan)}`);
+  } else if (approval.resolution === 'ambiguous') {
+    remaining.push(
+      `- Multiple plans exist without a clear active plan (${approval.totalPlans || 0} total). Re-open the target plan.md before implementation.`
+    );
+  } else {
+    remaining.push('- No active implementation plan recorded yet.');
+  }
+
+  if (teamRuntime.activeTeam) {
+    const taskSummary = progress.total
+      ? `${progress.completed || 0}/${progress.total} complete; ${progress.pending || 0} pending; ${progress.inProgress || 0} in progress`
+      : 'task progress unavailable';
+    completed.push(`- Team runtime tracked: ${teamRuntime.activeTeam} (${taskSummary})`);
+  }
+
+  if (teamRuntime.lastTask?.subject) {
+    completed.push(
+      `- Last completed task: #${teamRuntime.lastTask.id || '?'} ${teamRuntime.lastTask.subject}` +
+        `${teamRuntime.lastTask.teammate ? ` (${teamRuntime.lastTask.teammate})` : ''}`
+    );
+  }
+
+  if ((progress.pending || 0) + (progress.inProgress || 0) > 0) {
+    remaining.push(
+      `- Team work remains: ${progress.pending || 0} pending and ${progress.inProgress || 0} in progress` +
+        `${teamRuntime.phase ? ` in phase ${teamRuntime.phase}` : ''}.`
+    );
+  }
+
+  if (teamRuntime.idleTeammate) {
+    remaining.push(`- ${teamRuntime.idleTeammate} is idle. Reassign an unblocked task or shut the teammate down.`);
+  }
+
+  if (teamRuntime.lastConfigChange?.filePath) {
+    artifacts.push(
+      `- Last config change: ${teamRuntime.lastConfigChange.source || 'unknown'} -> ${teamRuntime.lastConfigChange.filePath}`
+    );
+  }
+
+  artifacts.push(`- Active strategy: ${activeStrategyLabel}`);
+  artifacts.push(`- Active plan: ${activePlanLabel}`);
+  artifacts.push(`- Strategy status: ${strategySummaryLabel(projectRoot, strategy)}`);
+  artifacts.push(`- Plan status: ${approvalSummaryLabel(projectRoot, approval)}`);
+
+  checklist.push('- Re-open the active strategy memo and active plan before dispatching more work.');
+  checklist.push('- Check task ownership before parallelizing; do not let two engineers touch the same files.');
+  if (!approval.approved) {
+    checklist.push('- Keep implementation blocked until the active plan says `Approval Status: approved`.');
+  } else {
+    checklist.push('- If implementation resumes, start from ownership-matrix.md and validation commands, not memory.');
+  }
+  if (teamRuntime.activeTeam) {
+    checklist.push(`- Inspect current task progress for team ${teamRuntime.activeTeam} before spawning or shutting down teammates.`);
+  }
+
+  return [
+    '# Session State',
+    `<!-- Generated: ${generatedAt} -->`,
+    `<!-- Event: ${eventLabel} -->`,
+    `<!-- Strategy: ${activeStrategyLabel} -->`,
+    `<!-- Plan: ${activePlanLabel} -->`,
+    '',
+    '## Workflow Snapshot',
+    `- Strategy: ${strategySummaryLabel(projectRoot, strategy)}`,
+    `- Plan: ${approvalSummaryLabel(projectRoot, approval)}`,
+    `- Team: ${teamRuntime.activeTeam || 'none'}`,
+    `- Phase: ${teamRuntime.phase || 'idle'}`,
+    '',
+    '## What Worked (Verified)',
+    ...(completed.length ? completed : ['- (No completed tasks recorded)']),
+    '',
+    "## What's Left",
+    ...(remaining.length ? remaining : ['- (All tracked workflow gates complete)']),
+    '',
+    '## Active Artifacts',
+    ...artifacts,
+    '',
+    '## Resume Checklist',
+    ...checklist,
+    ''
+  ].join('\n');
+}
+
+function writeLatestSessionState(projectRoot, content) {
+  const statePath = getSessionStateLatestPath(projectRoot);
+  fs.mkdirSync(path.dirname(statePath), { recursive: true });
+  fs.writeFileSync(statePath, content.endsWith('\n') ? content : `${content}\n`);
+}
+
+function archiveSessionStateSnapshot(projectRoot, content) {
+  const archiveDir = getSessionStateArchiveDir(projectRoot);
+  fs.mkdirSync(archiveDir, { recursive: true });
+  const archivePath = path.join(archiveDir, `${isoTimestampLabel()}.md`);
+  fs.writeFileSync(archivePath, content.endsWith('\n') ? content : `${content}\n`);
+  return archivePath;
 }
 
 function evaluateStrategyMemo(strategyFile) {
@@ -565,6 +939,7 @@ function validateAgentEditPath(projectRoot, payload, filePath) {
 function buildWorkflowSummary(projectRoot) {
   const approval = readApprovalState(projectRoot);
   const strategy = readStrategyState(projectRoot);
+  const teamRuntime = readTeamRuntimeState(projectRoot);
   const activePlanLabel = approval.activePlan
     ? normalizeRelative(projectRoot, approval.activePlan)
     : 'none';
@@ -596,20 +971,31 @@ function buildWorkflowSummary(projectRoot) {
       `strategy-memo.md. total=${strategy.totalMemos || 0})`;
   }
 
+  let teamRuntimeStatus = 'none';
+  if (teamRuntime.activeTeam) {
+    const progress = teamRuntime.progress || {};
+    const taskSummary = progress.total
+      ? ` ${progress.completed || 0}/${progress.total} tasks complete`
+      : '';
+    const phase = teamRuntime.phase ? ` phase=${teamRuntime.phase}` : '';
+    teamRuntimeStatus = `${teamRuntime.activeTeam}${taskSummary}${phase}`;
+  }
+
   return [
     'Company workflow:',
-    '1. market-researcher + competitor-analyst + ga4-analyst gather market, competitor, and measurement evidence and save artifacts under reports/research/ or tracking-plan.md',
-    '2. marketing-strategist turns evidence into a saved strategy memo under reports/strategy/YYYYMMDD-[slug]/strategy-memo.md',
-    '3. social-media-manager / seo-specialist / revops-manager / growth-manager turn strategy into calendars, discoverability plans, funnel ops, and lifecycle recommendations when needed',
-    '4. project-manager scopes backlog only after a complete saved strategy memo exists; codebase-scout maps current system, technical-brainstormer evaluates trade-offs',
-    '5. implementation-planner writes plan.md with `Approval Status: pending`',
-    '6. User approves -> plan updated to `Approval Status: approved` -> engineers implement',
-    '7. quality-reviewer then qa-tester run quality gate before any release',
+    '1. /eup-market-cycle creates a marketing intelligence team: market-researcher + competitor-analyst + ga4-analyst + seo-specialist or growth-manager, and saves evidence under reports/research/YYYYMMDD-[slug]/',
+    '2. marketing-strategist synthesizes saved evidence into reports/strategy/YYYYMMDD-[slug]/strategy-memo.md',
+    '3. /eup-dev-intake creates the PM intake team: project-manager + codebase-scout + technical-brainstormer, then implementation-planner writes plans/<slug>/plan.md plus task-graph.json and ownership-matrix.md',
+    '4. No implementation starts before the active plan contains `Approval Status: approved`',
+    '5. /eup-implement runs the engineering team with distinct file ownership and worktree isolation when parallel implementation is safe',
+    '6. quality-reviewer then qa-tester run the quality gate before any release or deploy',
+    '7. /eup-company-status reports active strategy, plan, team progress, approval, and next handoff',
     `Active strategy memo: ${activeStrategyLabel}`,
     `Current strategy memo: ${strategyStatus}`,
     `Active plan: ${activePlanLabel}`,
     `Current plan approval: ${planStatus}`,
-    'Delegation rule: the main session orchestrates subagents; subagents report back, they do not recursively spawn more subagents.',
+    `Active team runtime: ${teamRuntimeStatus}`,
+    'Delegation rule: the main session is the team lead. Project subagents define teammate roles; teammates claim tasks, message the lead, and do not recursively spawn more teammates.',
     buildOperatingBar()
   ].join('\n');
 }
@@ -624,20 +1010,34 @@ function responseWithContext(eventName, additionalContext) {
 }
 
 module.exports = {
+  archiveSessionStateSnapshot,
   buildOperatingBar,
+  buildSessionStateMarkdown,
   buildWorkflowSummary,
   describeAgentEditPolicy,
+  extractTeamNameFromAgentId,
   extractToolFilePath,
   getActingAgentName,
+  getRuntimeTaskDir,
+  getRuntimeTeamConfigPath,
+  listAssignedTeamTasks,
+  listTeamPeers,
   isExemptPath,
   normalizeRelative,
   recordAgentSession,
   readActivePlan,
   readApprovalState,
+  readLatestSessionState,
+  readTeamConfig,
+  readTeamRuntimeState,
+  readTeamTasks,
   readStrategyState,
   readHookStdin,
   responseWithContext,
   setActivePlan,
   setActiveStrategy,
-  validateAgentEditPath
+  summarizeTeamTasks,
+  validateAgentEditPath,
+  writeLatestSessionState,
+  writeTeamRuntimeState
 };

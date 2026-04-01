@@ -19,7 +19,7 @@ try {
     '';
 
   const looksLikeImplementation = /\b(build|implement|code|ship|deploy|refactor|fix|feature|api|component)\b/i.test(prompt);
-  const looksLikePmIntake = /\/eup-pm\b|project-manager|project manager|task breakdown|technical backlog|sprint planning/i.test(prompt);
+  const looksLikePmIntake = /\/eup-pm\b|\/eup-dev-intake\b|project-manager|project manager|dev intake|task breakdown|technical backlog|sprint planning/i.test(prompt);
   const header = looksLikeImplementation
     ? '## Implementation Reminder'
     : '## Workflow Reminder';
@@ -37,7 +37,7 @@ try {
         : '';
       preface =
         `## PM Intake Gate\n` +
-        `/eup-pm is BLOCKED until a saved strategy memo exists at ` +
+        `/eup-pm and /eup-dev-intake are BLOCKED until a saved strategy memo exists at ` +
         `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md and includes target audience, positioning, ` +
         `channel priorities, priority experiments, measurement notes, concrete dev asks, PM intake packet, ` +
         `and role handoffs.${missingDetails}\n` +
