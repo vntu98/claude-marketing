@@ -2,7 +2,9 @@
 'use strict';
 
 const {
+  collectTaskQualityGateFailures,
   readHookStdin,
+  readTeamTasks,
   responseWithContext,
   summarizeTeamTasks,
   writeTeamRuntimeState
@@ -25,6 +27,22 @@ try {
   if (!teamName) {
     process.stdout.write(JSON.stringify({ continue: true }));
     process.exit(0);
+  }
+
+  const taskId = String(payload.task_id || '').trim();
+  if (taskId) {
+    const task = readTeamTasks(teamName).find((candidate) => String(candidate.id) === taskId);
+    const failures = task
+      ? collectTaskQualityGateFailures(projectRoot, task, {
+          artifactFlags: ['enforceArtifactsOnIdle', 'enforceArtifactsOnCompletion'],
+          validationFlags: ['enforceValidationOnIdle', 'enforceValidationOnCompletion']
+        })
+      : [];
+
+    if (failures.length) {
+      process.stderr.write(`${failures.join('\n')}\n`);
+      process.exit(2);
+    }
   }
 
   const progress = summarizeTeamTasks(teamName);

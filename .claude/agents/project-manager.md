@@ -42,6 +42,7 @@ For each task packet seed, use this contract so the controller can turn it into 
 - `Phase:`
 - `Owner Role:`
 - `Depends On:`
+- `Context:`
 - `Artifacts:` or `Read Scope:` or `File Ownership:`
 - `Acceptance Criteria:`
 - `Validation:`

@@ -23,12 +23,12 @@ Optional:
 
 The company runtime now enforces these operating rules:
 
-- `TaskCreated` validates that every team task includes a real task packet with owner, dependencies, acceptance criteria, and validation.
+- `TaskCreated` validates that every team task includes a real task packet with owner, dependencies, task-specific context, acceptance criteria, and validation.
 - Implementation writes are allowed only when the active plan bundle is truly ready: `Approval Status: approved`, valid `task-graph.json`, and non-empty `ownership-matrix.md`.
 - Session snapshots are persisted under `.claude/session-state/` and replayed on `startup`, `resume`, and `compact` so work can continue without re-scoping from memory.
 - Teammates receive richer `SubagentStart` context: peers, assigned tasks, active strategy artifact, active plan artifact, and current team progress.
 - Implementation-capable roles (`database-engineer`, `backend-engineer`, `frontend-engineer`, `mobile-engineer`, `fullstack-developer`, `qa-tester`, `devops-engineer`) declare `isolation: worktree` for safe parallel execution.
-- `TaskCompleted` and `TeammateIdle` update runtime state that feeds the status line and the current handoff view.
+- `TaskCompleted` and `TeammateIdle` now also enforce required artifacts or validation metadata before a teammate can quietly finish, then update runtime state for the status line and handoff view.
 
 ## Senior Company Roster
 
@@ -88,6 +88,8 @@ market-researcher + competitor-analyst + ga4-analyst + seo-specialist|growth-man
        ↓
 marketing-strategist (save strategy memo)
        ↓
+/eup-debate (optional)
+       ↓
 /eup-social-content         ┐
 /eup-seo-audit             │
 /eup-site-architecture     │ support / refine   →   /eup-dev-intake
@@ -121,6 +123,7 @@ marketing-strategist (save strategy memo)
 | Command | What it does |
 |---------|-------------|
 | `/eup-market-cycle` | Manual Agent Teams workflow: research, competitor intel, GA4/channel analysis, strategy memo |
+| `/eup-debate` | Manual Agent Teams workflow: marketing + dev debate before intake, planning, or scope lock |
 | `/eup-context` | Product, audience, voice, positioning |
 | `/eup-research` | Mine customer language from Reddit, G2, interviews |
 | `/eup-strategy` | Strategy memo: positioning, channel priorities, experiments, dev asks |
@@ -177,15 +180,16 @@ marketing-strategist (save strategy memo)
 3. /eup-analytics           → define or update GA4 tracking plan
 4. /eup-signup-optimization → tighten acquisition flow
 5. /eup-strategy            → save strategy memo with positioning, experiments, and dev asks
-6. /eup-dev-intake          → write `dev-intake.md`, scout, brainstorm
-7. /eup-plan                → write `plan.md`, `task-graph.json`, `ownership-matrix.md` → ⛔ you approve
-8. main session delegates approved work:
+6. /eup-debate              → optional company debate if the strategy still needs adversarial review
+7. /eup-dev-intake          → write `dev-intake.md`, scout, brainstorm
+8. /eup-plan                → write `plan.md`, `task-graph.json`, `ownership-matrix.md` → ⛔ you approve
+9. main session delegates approved work:
    - database-engineer: growth and event schema
    - frontend-engineer: landing page and onboarding UI
    - backend-engineer: signup API and tracking endpoints
-9. /eup-implement          → orchestrated implementation with task graph + worktree-safe ownership
-10. eup-review + eup-test → quality gates
-11. /eup-devops          → deploy only when asked
+10. /eup-implement         → orchestrated implementation with task graph + worktree-safe ownership
+11. eup-review + eup-test  → quality gates
+12. /eup-devops            → deploy only when asked
 ```
 
 ## Workflow Files
@@ -207,6 +211,9 @@ Every team task created by `/eup-market-cycle`, `/eup-dev-intake`, or `/eup-impl
 Phase: implementation
 Owner Role: backend-engineer
 Depends On: task-db
+Context:
+- Business goal: ship the approved tracking endpoint for the landing page funnel
+- Constraints: keep the existing auth contract and event names unchanged
 File Ownership:
 - src/api/**
 - src/services/tracking/**
@@ -221,6 +228,7 @@ Validation:
 
 Use one of these scope sections depending on the role:
 
+- `Context:` for every lane so teammates have task-specific instructions that do not depend on the lead's chat history
 - `Artifacts:` for PM, planner, strategist, and report-writing lanes
 - `Read Scope:` for scout, brainstorm, and review lanes
 - `File Ownership:` plus `Isolation: worktree` for implementation lanes
@@ -259,6 +267,7 @@ The validation suite checks the workflow contract, role scopes, approval gate, A
 It now also covers:
 
 - `TaskCreated` task-packet enforcement
+- `TaskCompleted` artifact and validation enforcement
 - session-state save/replay
 - richer teammate context injection
 - `worktree` isolation declarations for implementation roles

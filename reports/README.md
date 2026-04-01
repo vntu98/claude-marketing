@@ -67,3 +67,25 @@ Minimum required sections:
 - `Tracking And Validation Needs`
 
 `/eup-dev-intake` should write this packet before `implementation-planner` creates `task-graph.json` and `ownership-matrix.md`.
+
+## Debate Artifacts
+
+When the company should debate a strategy or task before dev intake or planning is locked, save the debate package inside the same strategy folder:
+
+```text
+reports/strategy/YYYYMMDD-[slug]/
+```
+
+Required files:
+
+- `debate-brief.md`
+- `marketing-thesis.md`
+- `dev-thesis.md`
+- `marketing-challenge.md`
+- `dev-challenge.md`
+- `marketing-rebuttal.md`
+- `dev-rebuttal.md`
+- `debate-memo.md`
+
+`/eup-debate` should treat `debate-memo.md` as the final decision artifact and explicitly say whether the next handoff is revised strategy work, `/eup-dev-intake`, or planning.
+If the debate runs from a free-form question instead of a saved strategy memo, create a fresh `reports/strategy/YYYYMMDD-[slug]/` folder first so the decision remains durable.

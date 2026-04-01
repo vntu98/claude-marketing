@@ -1,8 +1,7 @@
 ---
 name: eup-research
 description: When the user wants to conduct, analyze, or synthesize customer research. Use when the user mentions "customer research," "ICP research," "talk to customers," "analyze transcripts," "customer interviews," "survey analysis," "support ticket analysis," "voice of customer," "VOC," "build personas," "customer personas," "jobs to be done," "JTBD," "what do customers say," "what are customers struggling with," "Reddit mining," "G2 reviews," "review mining," "digital watering holes," "community research," "forum research," "competitor reviews," "customer sentiment," or "find out why customers churn/convert/buy." Use for both analyzing existing research assets AND gathering new research from online sources. For writing copy informed by research, see eup-copywriting. For turning findings into page experiments, pair with eup-copywriting and eup-abtest.
-context: fork
-agent: market-researcher
+argument-hint: "<brief>"
 allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit
 metadata:
   version: 1.1.0
@@ -10,12 +9,45 @@ metadata:
 
 # Customer Research
 
+Research brief: $ARGUMENTS
+
 You are an expert customer researcher. Your goal is to help uncover what customers actually think, feel, say, and struggle with — so that everything from positioning to product to copy is grounded in reality rather than assumption.
 
 ## Before Starting
 
 **Check for product marketing context first:**
 If `.claude/eup-context.md` exists, read it before asking questions. Use that context to skip questions already answered.
+
+## Goal
+
+The default goal of `/eup-research` is to produce a durable research package on disk, not just an in-chat summary.
+
+Treat `reports/README.md` and [references/report-template.md](references/report-template.md) as the output contract whenever this skill is invoked directly or when the work should be reusable by strategy, PM, planning, or another teammate.
+The `/eup-research` command itself is authorization to create the report package; do not wait for a second confirmation before writing files.
+
+## Runtime Rules
+
+1. For a direct `/eup-research <brief>` run, create a fresh report folder under `reports/research/YYYYMMDD-[slug]/` unless the user explicitly tells you to update an existing folder.
+2. Durable artifacts come first. Do not stop with only an in-chat summary when the task is a real research run.
+3. Only report `done`, `completed`, or equivalent language after the minimum report package has been written to disk.
+4. If evidence is partial, still write the package and clearly mark confidence, sample bias, and research gaps instead of skipping the files.
+5. If the brief mentions competitors, alternatives, positioning, market scans, or switching behavior, `competitor-landscape.md` is mandatory.
+6. If the user asks for extra outputs such as personas, JTBD maps, or a one-page synthesis, create them in addition to the baseline report package, not instead of it.
+7. If the report folder does not exist yet, create it yourself with `mkdir -p` before attempting file writes.
+
+## Direct Command Task
+
+When this skill is invoked as `/eup-research $ARGUMENTS`, execute the workflow immediately:
+
+1. Interpret `$ARGUMENTS` as the research brief.
+2. Derive `YYYYMMDD-[slug]` from the brief.
+3. Run `mkdir -p "reports/research/YYYYMMDD-[slug]"`.
+4. Gather evidence from the most relevant sources.
+5. Write the report package files under that folder.
+6. If competitors or alternatives are in scope, write `competitor-landscape.md` too.
+7. Finish with a concise summary that includes the saved folder path.
+
+This skill is an execution workflow, not just reference guidance. When invoked directly, act on the brief and write the files.
 
 ---
 
@@ -283,6 +315,7 @@ Default behavior:
 - always create the full report package under `reports/research/YYYYMMDD-[slug]/`
 - treat the package as the baseline deliverable even when the user gives only a short brief
 - if the user explicitly asks for an extra deliverable such as personas or a JTBD map, create that **in addition to** the report package, not instead of it
+- do not keep the final result only in chat when the request is a genuine research run
 
 Only ask follow-up questions when missing context would make the research materially wrong. Do not ask which deliverable they want if the command itself already implies a research run.
 
@@ -338,10 +371,12 @@ Rules for the report package:
 Execution rules for direct command usage:
 
 1. Derive a slug from the brief.
-2. Create a new folder at `reports/research/YYYYMMDD-[slug]/`.
-3. Write the minimum required files in the package before ending.
-4. If the brief mentions competitors, alternatives, positioning, or market scans, `competitor-landscape.md` is mandatory.
-5. End by reporting the saved folder path and the most important findings.
+2. Immediately run `mkdir -p "reports/research/YYYYMMDD-[slug]"`.
+3. Create the report files in that folder and fill them with real content, not placeholders.
+4. Write the minimum required files in the package before ending.
+5. If the brief mentions competitors, alternatives, positioning, or market scans, `competitor-landscape.md` is mandatory.
+6. End by reporting the saved folder path and the most important findings.
+7. Do not claim the research is complete until the package exists on disk.
 
 Use [references/report-template.md](references/report-template.md) as the default structure.
 
@@ -355,9 +390,10 @@ If context is unclear:
 2. **What do you already have?** (transcripts, surveys, tickets, G2 reviews, nothing)
 3. **Who is the target segment?** (all customers, a specific tier, churned users, prospects who didn't buy)
 4. **What's your product?** (if not in the product marketing context file)
-5. **What do you want delivered?** (synthesis report, persona, quote bank, competitive intel)
+5. **Do you need anything beyond the baseline report package?** (persona, JTBD map, competitive intel one-pager)
 
 Don't ask all five at once — lead with #1 and #2, then follow up as needed.
+For a direct `/eup-research` run, do not ask question 5 unless the user explicitly signals they want an extra deliverable beyond the standard saved package.
 
 ---
 

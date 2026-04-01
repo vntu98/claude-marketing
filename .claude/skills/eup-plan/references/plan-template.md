@@ -61,7 +61,7 @@ Approval Status: pending
 | 4 | quality-reviewer + qa-tester + devops-engineer | tests, CI, deploy config |
 
 ## Runtime Contracts
-- `task-graph.json`: machine-readable tasks with owner, dependencies, file globs, acceptance criteria, validation commands, and blocking policy
+- `task-graph.json`: machine-readable tasks with owner, dependencies, file globs, acceptance criteria, validation commands, blocking policy, and a `taskDescription` packet that includes `Context:`
 - `ownership-matrix.md`: human-readable ownership lanes and parallel-safe file surfaces
 
 ## Risks

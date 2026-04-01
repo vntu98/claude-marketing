@@ -128,6 +128,9 @@ function writePlanRuntimeArtifacts(planDir, options = {}) {
               'Phase: implementation',
               'Owner Role: frontend-engineer',
               'Depends On: none',
+              'Context:',
+              '- Business goal: implement the approved frontend slice',
+              '- Constraints: stay within frontend-owned files only',
               'File Ownership:',
               '- src/**',
               'Isolation: worktree',
@@ -720,6 +723,9 @@ test('task created hook blocks unknown owner roles', () => {
         'Phase: implementation',
         'Owner Role: backend-enginer',
         'Depends On: none',
+        'Context:',
+        '- Business goal: implement backend tracking',
+        '- Constraints: stay within approved backend scope',
         'Artifacts:',
         '- reports/debug.md',
         'Acceptance Criteria:',
@@ -750,6 +756,9 @@ test('task created hook allows valid implementation task packets and records run
         'Phase: implementation',
         'Owner Role: backend-engineer',
         'Depends On: task-db',
+        'Context:',
+        '- Business goal: implement backend tracking',
+        '- Constraints: keep file ownership within the backend lane',
         'File Ownership:',
         '- src/api/**',
         '- src/services/tracking/**',
@@ -1073,6 +1082,24 @@ test('constrained non-engineering roles are limited to approved artifact paths',
       reason: /strategy intake packets/i
     },
     {
+      agent: 'codebase-scout',
+      allowedPath: ['reports', 'strategy', '20260401-demo', 'scout-findings.md'],
+      blockedPath: ['src', 'feature.ts'],
+      reason: /findings artifacts only/i
+    },
+    {
+      agent: 'technical-brainstormer',
+      allowedPath: ['reports', 'strategy', '20260401-demo', 'technical-options.md'],
+      blockedPath: ['src', 'feature.ts'],
+      reason: /decision artifacts only/i
+    },
+    {
+      agent: 'quality-reviewer',
+      allowedPath: ['reports', 'strategy', '20260401-demo', 'dev-challenge.md'],
+      blockedPath: ['src', 'feature.ts'],
+      reason: /review artifacts only/i
+    },
+    {
       agent: 'implementation-planner',
       allowedPath: ['plans', 'launch', 'plan.md'],
       blockedPath: ['docs', 'plan-summary.md'],
@@ -1173,6 +1200,7 @@ test('implementation-capable agents declare worktree isolation', () => {
 test('manual company orchestration skills exist and are manual-only', () => {
   const manualSkills = [
     '.claude/skills/eup-market-cycle/SKILL.md',
+    '.claude/skills/eup-debate/SKILL.md',
     '.claude/skills/eup-dev-intake/SKILL.md',
     '.claude/skills/eup-implement/SKILL.md',
     '.claude/skills/eup-company-status/SKILL.md'
@@ -1184,9 +1212,13 @@ test('manual company orchestration skills exist and are manual-only', () => {
   }
 });
 
-test('market-cycle and dev-intake require team cleanup before creating a new team', () => {
+test('market-cycle, debate, and dev-intake require team cleanup before creating a new team', () => {
   const marketCycle = fs.readFileSync(
     path.join(projectRoot, '.claude', 'skills', 'eup-market-cycle', 'SKILL.md'),
+    'utf8'
+  );
+  const debateSkill = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-debate', 'SKILL.md'),
     'utf8'
   );
   const devIntake = fs.readFileSync(
@@ -1196,14 +1228,38 @@ test('market-cycle and dev-intake require team cleanup before creating a new tea
 
   assert.match(marketCycle, /Before `TeamCreate`, check whether this lead session is already managing another team/i);
   assert.match(marketCycle, /call `TeamDelete` on the old team first/i);
+  assert.match(marketCycle, /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i);
   assert.match(marketCycle, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
+
+  assert.match(debateSkill, /Before `TeamCreate`, check whether this lead session is already managing another team/i);
+  assert.match(debateSkill, /call `TeamDelete` on the old team first/i);
+  assert.match(debateSkill, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
+  assert.match(debateSkill, /marketing-rebuttal\.md/i);
+  assert.match(debateSkill, /dev-rebuttal\.md/i);
+  assert.match(debateSkill, /Do not open a debate for routine work/i);
 
   assert.match(devIntake, /Before `TeamCreate`, check whether this lead session is already managing another team/i);
   assert.match(devIntake, /call `TeamDelete` on the old team first/i);
+  assert.match(devIntake, /shut down idle teammates and delete the dev-intake team with `TeamDelete` from the lead session/i);
   assert.match(devIntake, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
   assert.match(devIntake, /scout-findings\.md/i);
   assert.match(devIntake, /technical-options\.md/i);
   assert.match(devIntake, /call `TaskUpdate` so their assigned tasks are marked completed/i);
+});
+
+test('eup-implement enforces lead-owned team lifecycle and rich task context', () => {
+  const implementSkill = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-implement', 'SKILL.md'),
+    'utf8'
+  );
+
+  assert.match(implementSkill, /Before `TeamCreate`, check whether this lead session is already managing another team/i);
+  assert.match(implementSkill, /shut down idle teammates, call `TeamDelete` on the old team first/i);
+  assert.match(implementSkill, /Teammates do not inherit the lead chat history/i);
+  assert.match(implementSkill, /split it into additional self-contained tasks so teammates can self-claim/i);
+  assert.match(implementSkill, /Wait for teammates to complete their tasks before the lead synthesizes/i);
+  assert.match(implementSkill, /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i);
+  assert.match(implementSkill, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
 });
 
 test('eup-research defaults to saving a full research package for direct command usage', () => {
@@ -1212,10 +1268,20 @@ test('eup-research defaults to saving a full research package for direct command
     'utf8'
   );
 
+  assert.doesNotMatch(researchSkill, /^context:\s*fork$/m);
+  assert.doesNotMatch(researchSkill, /^agent:\s*market-researcher$/m);
+  assert.match(researchSkill, /^Research brief: \$ARGUMENTS$/m);
+  assert.match(researchSkill, /When this skill is invoked as `\/eup-research \$ARGUMENTS`, execute the workflow immediately/i);
   assert.match(researchSkill, /do \*\*not\*\* wait for the user to choose a deliverable before producing output/i);
   assert.match(researchSkill, /always create the full report package under `reports\/research\/YYYYMMDD-\[slug\]\/`/i);
-  assert.match(researchSkill, /Create a new folder at `reports\/research\/YYYYMMDD-\[slug\]\/`/i);
+  assert.match(researchSkill, /The `\/eup-research` command itself is authorization to create the report package/i);
+  assert.match(researchSkill, /create it yourself with `mkdir -p` before attempting file writes/i);
+  assert.match(researchSkill, /Immediately run `mkdir -p "reports\/research\/YYYYMMDD-\[slug\]"`/i);
   assert.match(researchSkill, /Write the minimum required files in the package before ending/i);
+  assert.match(researchSkill, /Do not stop with only an in-chat summary/i);
+  assert.match(researchSkill, /Only report `done`, `completed`, or equivalent language after the minimum report package has been written to disk/i);
+  assert.match(researchSkill, /do not keep the final result only in chat/i);
+  assert.match(researchSkill, /Do not claim the research is complete until the package exists on disk/i);
   assert.doesNotMatch(researchSkill, /^Ask the user which deliverable\(s\) they need before generating output\.$/m);
 });
 
@@ -1310,6 +1376,38 @@ test('task completed hook updates team runtime state and reports progress', () =
   assert.equal(runtimeState.progress.completed, 1);
 });
 
+test('task completed hook blocks when required completion artifacts are missing', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-task-completed-block-'));
+  const homeDir = path.join(tmpDir, 'home');
+  fs.mkdirSync(homeDir, { recursive: true });
+  writeTeamTask(homeDir, 'market-cycle', {
+    id: '1',
+    subject: 'Write strategy memo',
+    owner: 'strategist-1',
+    status: 'completed',
+    metadata: {
+      requiredArtifacts: ['reports/strategy/20260401-demo/strategy-memo.md'],
+      enforceArtifactsOnIdle: true
+    }
+  });
+
+  const hook = runHook(
+    '.claude/hooks/task-completed-handler.cjs',
+    {
+      team_name: 'market-cycle',
+      teammate_name: 'strategist-1',
+      task_id: '1',
+      task_subject: 'Write strategy memo',
+      task_metadata: { phase: 'strategy' }
+    },
+    tmpDir,
+    { HOME: homeDir }
+  );
+
+  assert.equal(hook.status, 2);
+  assert.match(hook.stderr, /Missing required artifact/);
+});
+
 test('teammate idle hook blocks when required artifact is missing', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-teammate-idle-block-'));
   const homeDir = path.join(tmpDir, 'home');
@@ -1393,6 +1491,9 @@ test('teammate idle hook asks read-only teammates to close owned tasks instead o
       'Phase: dev-intake',
       'Owner Role: codebase-scout',
       'Depends On: none',
+      'Context:',
+      '- Business goal: map the smallest safe change surface',
+      '- Constraints: read-only lane with explicit file references',
       'Read Scope:',
       '- src/**',
       'Acceptance Criteria:',

@@ -10,6 +10,7 @@ const GENERAL_REQUIRED = [
   ['Phase:', /(^|\n)Phase:\s*\S+/i],
   ['Owner Role:', /(^|\n)Owner Role:\s*\S+/i],
   ['Depends On:', /(^|\n)Depends On:\s*\S+/i],
+  ['Context:', /(^|\n)Context:\s*[\s\S]*\S/i],
   ['Acceptance Criteria:', /(^|\n)Acceptance Criteria:\s*[\s\S]*\S/i],
   ['Validation:', /(^|\n)Validation:\s*[\s\S]*\S/i]
 ];
@@ -105,7 +106,7 @@ try {
 
   if (!description) {
     process.stderr.write(
-      'Task description is required. Include Phase, Owner Role, Depends On, Acceptance Criteria, Validation, and the appropriate scope section.\n'
+      'Task description is required. Include Phase, Owner Role, Depends On, Context, Acceptance Criteria, Validation, and the appropriate scope section.\n'
     );
     process.exit(2);
   }
@@ -127,7 +128,7 @@ try {
     process.stderr.write(
       [
         `Task "${subject}" is missing required task packet fields: ${missing.join(', ')}.`,
-        'Use the company task contract with explicit owner, dependency, acceptance criteria, validation, and either Artifacts, Read Scope, or File Ownership + Isolation: worktree.'
+        'Use the company task contract with explicit owner, dependency, task context, acceptance criteria, validation, and either Artifacts, Read Scope, or File Ownership + Isolation: worktree.'
       ].join('\n') + '\n'
     );
     process.exit(2);

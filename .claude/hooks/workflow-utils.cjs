@@ -121,6 +121,21 @@ const AGENT_EDIT_POLICIES = {
     allowPrefixes: ['docs/', 'plans/', 'reports/strategy/'],
     allowFiles: ['README.md', 'CLAUDE.md']
   },
+  'codebase-scout': {
+    label: 'findings artifacts only',
+    allowPrefixes: ['docs/', 'reports/'],
+    allowFiles: ['README.md', 'CLAUDE.md']
+  },
+  'technical-brainstormer': {
+    label: 'decision artifacts only',
+    allowPrefixes: ['docs/', 'reports/'],
+    allowFiles: ['README.md', 'CLAUDE.md']
+  },
+  'quality-reviewer': {
+    label: 'review artifacts only',
+    allowPrefixes: ['docs/', 'reports/'],
+    allowFiles: ['README.md', 'CLAUDE.md']
+  },
   'implementation-planner': {
     label: 'plans only',
     allowPrefixes: ['plans/']
@@ -156,6 +171,61 @@ function hasNonEmptyList(value) {
   }
 
   return hasText(String(value || ''));
+}
+
+function asArray(value) {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+
+  return [value];
+}
+
+function resolveArtifact(projectRoot, artifactPath) {
+  if (!artifactPath || typeof artifactPath !== 'string') {
+    return '';
+  }
+
+  return path.isAbsolute(artifactPath)
+    ? artifactPath
+    : path.join(projectRoot, artifactPath);
+}
+
+function collectTaskQualityGateFailures(projectRoot, task, options = {}) {
+  const metadata = task?.metadata || {};
+  const subject = task?.subject || task?.title || task?.id || 'task';
+  const failures = [];
+  const artifactFlags = Array.isArray(options.artifactFlags)
+    ? options.artifactFlags
+    : ['enforceArtifactsOnIdle'];
+  const validationFlags = Array.isArray(options.validationFlags)
+    ? options.validationFlags
+    : ['enforceValidationOnIdle'];
+  const enforceArtifacts = artifactFlags.some((flag) => metadata[flag]);
+  const enforceValidation = validationFlags.some((flag) => metadata[flag]);
+
+  if (enforceArtifacts) {
+    for (const artifact of asArray(metadata.requiredArtifacts)) {
+      if (!fs.existsSync(resolveArtifact(projectRoot, artifact))) {
+        failures.push(`Missing required artifact for ${subject}: ${artifact}`);
+      }
+    }
+  }
+
+  if (enforceValidation) {
+    const hasValidation = metadata.validationPassed === true || metadata.validationRecorded === true;
+    if (!hasValidation) {
+      failures.push(
+        `Validation not recorded for ${subject}. Run: ${asArray(metadata.validationCommands).join(', ') || 'the task validation command'}`
+      );
+    }
+  }
+
+  return failures;
 }
 
 function walk(dir, predicate, results = []) {
@@ -1224,11 +1294,12 @@ function buildWorkflowSummary(projectRoot) {
     'Company workflow:',
     '1. /eup-market-cycle creates a marketing intelligence team: market-researcher + competitor-analyst + ga4-analyst + seo-specialist or growth-manager, and saves evidence under reports/research/YYYYMMDD-[slug]/',
     '2. marketing-strategist synthesizes saved evidence into reports/strategy/YYYYMMDD-[slug]/strategy-memo.md',
-    '3. /eup-dev-intake creates the PM intake team: project-manager + codebase-scout + technical-brainstormer, then implementation-planner writes plans/<slug>/plan.md plus task-graph.json and ownership-matrix.md',
-    '4. No implementation starts before the active plan contains `Approval Status: approved`',
-    '5. /eup-implement runs the engineering team with distinct file ownership and worktree isolation when parallel implementation is safe',
-    '6. quality-reviewer then qa-tester run the quality gate before any release or deploy',
-    '7. /eup-company-status reports active strategy, plan, team progress, approval, and next handoff',
+    '3. /eup-debate optionally runs a structured company debate across marketing and dev before intake or planning is locked',
+    '4. /eup-dev-intake creates the PM intake team: project-manager + codebase-scout + technical-brainstormer, then implementation-planner writes plans/<slug>/plan.md plus task-graph.json and ownership-matrix.md',
+    '5. No implementation starts before the active plan contains `Approval Status: approved`',
+    '6. /eup-implement runs the engineering team with distinct file ownership and worktree isolation when parallel implementation is safe',
+    '7. quality-reviewer then qa-tester run the quality gate before any release or deploy',
+    '8. /eup-company-status reports active strategy, plan, team progress, approval, and next handoff',
     `Active strategy memo: ${activeStrategyLabel}`,
     `Current strategy memo: ${strategyStatus}`,
     `Active plan: ${activePlanLabel}`,
@@ -1260,9 +1331,11 @@ function responseWithContext(eventName, additionalContext) {
 
 module.exports = {
   archiveSessionStateSnapshot,
+  asArray,
   buildOperatingBar,
   buildSessionStateMarkdown,
   buildWorkflowSummary,
+  collectTaskQualityGateFailures,
   describeAgentEditPolicy,
   extractTeamNameFromAgentId,
   extractToolFilePath,
@@ -1284,6 +1357,7 @@ module.exports = {
   readHookStdin,
   readPlanBundleState,
   responseWithContext,
+  resolveArtifact,
   setActivePlan,
   setActiveStrategy,
   summarizePlanBundleIssues,

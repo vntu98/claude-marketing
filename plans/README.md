@@ -19,6 +19,7 @@ Every `plan.md` must start with YAML frontmatter and include one explicit approv
 The workflow hooks use that line to decide whether implementation edits are allowed.
 Implementation remains blocked if that approved plan is missing a valid `task-graph.json` or a non-empty `ownership-matrix.md`.
 The last edited `plans/**/plan.md` becomes the active plan automatically; source-code edits and post-approval orchestration are gated against that active plan, not against unrelated historical plans.
+Historical or illustrative plan bundles must be regenerated to the current task-graph contract before approval; a pending example is not automatically runtime-ready for `/eup-implement`.
 
 ## Task Graph Contract
 
@@ -39,6 +40,7 @@ The human-readable `taskDescription` should follow the same task packet contract
 - `Phase:`
 - `Owner Role:`
 - `Depends On:`
+- `Context:`
 - `Artifacts:` or `Read Scope:` or `File Ownership:`
 - `Acceptance Criteria:`
 - `Validation:`

@@ -42,12 +42,12 @@ Run this command inline as the team lead. This workflow converts a saved strateg
    - `project-manager` to turn the strategy into `dev-intake.md`
    - `codebase-scout` to map the smallest safe change surface and save `scout-findings.md`
    - `technical-brainstormer` to evaluate trade-offs or vendor choices and save `technical-options.md`
-   - each task description must declare `Phase`, `Owner Role`, `Depends On`, and then either `Artifacts:` or `Read Scope:` depending on the role
+   - each task description must declare `Phase`, `Owner Role`, `Depends On`, `Context:`, and then either `Artifacts:` or `Read Scope:` depending on the role
    - every task description must also include `Acceptance Criteria:` and `Validation:`
 6. Allow scout and brainstorm to run in parallel only when the PM packet does not depend on deeper codebase findings.
 7. Require `codebase-scout` and `technical-brainstormer` to save their artifacts and then call `TaskUpdate` so their assigned tasks are marked completed before they stop. A chat handoff alone is not enough.
 8. After those tasks finish, dispatch `implementation-planner` to write `plan.md`, `task-graph.json`, and `ownership-matrix.md`.
-9. After the required outputs exist, delete the dev-intake team with `TeamDelete`.
+9. After the required outputs exist, shut down idle teammates and delete the dev-intake team with `TeamDelete` from the lead session.
 10. Only report `team disbanded`, `team fully disbanded`, or equivalent language after `TeamDelete` returns success.
 11. Stop before implementation. The next gate is explicit user approval on the active plan.
 
@@ -61,6 +61,9 @@ For PM and planner lanes:
 Phase: dev-intake
 Owner Role: project-manager
 Depends On: none
+Context:
+- Business goal: convert the approved strategy memo into a planning-ready intake packet
+- Constraints: keep ownership non-overlapping and stop before implementation
 Artifacts:
 - reports/strategy/YYYYMMDD-[slug]/dev-intake.md
 Acceptance Criteria:
@@ -75,6 +78,9 @@ For scout and brainstorm lanes:
 Phase: dev-intake
 Owner Role: codebase-scout
 Depends On: none
+Context:
+- Business goal: identify the smallest safe change surface for the approved dev ask
+- Constraints: read-only lane, cite file paths, and call out untouched modules
 Read Scope:
 - app/**
 - src/**

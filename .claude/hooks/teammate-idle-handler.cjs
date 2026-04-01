@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const {
+  collectTaskQualityGateFailures,
   readHookStdin,
   readTeamTasks,
   responseWithContext,
@@ -15,28 +14,6 @@ const READ_ONLY_OWNER_ROLES = new Set([
   'technical-brainstormer',
   'quality-reviewer'
 ]);
-
-function asArray(value) {
-  if (!value) {
-    return [];
-  }
-
-  if (Array.isArray(value)) {
-    return value.filter(Boolean);
-  }
-
-  return [value];
-}
-
-function resolveArtifact(projectRoot, artifactPath) {
-  if (!artifactPath || typeof artifactPath !== 'string') {
-    return '';
-  }
-
-  return path.isAbsolute(artifactPath)
-    ? artifactPath
-    : path.join(projectRoot, artifactPath);
-}
 
 function parseOwnerRole(task) {
   const direct = task?.ownerRole || task?.metadata?.ownerRole;
@@ -83,21 +60,12 @@ function collectIdleGuards(projectRoot, tasks, teammateName) {
       continue;
     }
 
-    const metadata = task.metadata || {};
-    if (metadata.enforceArtifactsOnIdle) {
-      for (const artifact of asArray(metadata.requiredArtifacts)) {
-        if (!fs.existsSync(resolveArtifact(projectRoot, artifact))) {
-          failures.push(`Missing required artifact for ${task.subject || task.id}: ${artifact}`);
-        }
-      }
-    }
-
-    if (metadata.enforceValidationOnIdle) {
-      const hasValidation = metadata.validationPassed === true || metadata.validationRecorded === true;
-      if (!hasValidation) {
-        failures.push(`Validation not recorded for ${task.subject || task.id}. Run: ${asArray(metadata.validationCommands).join(', ') || 'the task validation command'}`);
-      }
-    }
+    failures.push(
+      ...collectTaskQualityGateFailures(projectRoot, task, {
+        artifactFlags: ['enforceArtifactsOnIdle'],
+        validationFlags: ['enforceValidationOnIdle']
+      })
+    );
   }
 
   return failures;

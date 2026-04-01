@@ -221,6 +221,11 @@ function validateProject(projectRoot) {
     'qa-tester',
     'devops-engineer'
   ];
+  const durableArtifactAgents = [
+    'codebase-scout',
+    'technical-brainstormer',
+    'quality-reviewer'
+  ];
 
   for (const agentName of requiredAgents) {
     if (!agentMap.has(agentName)) {
@@ -240,8 +245,18 @@ function validateProject(projectRoot) {
     }
   }
 
+  for (const agentName of durableArtifactAgents) {
+    if (!agentMap.has(agentName)) {
+      continue;
+    }
+
+    const tools = agentMap.get(agentName).frontmatter.tools || [];
+    if (!Array.isArray(tools) || !tools.includes('Write') || !tools.includes('Edit')) {
+      errors.push(`Agent ${agentName} must allow Write and Edit so it can save durable handoff artifacts`);
+    }
+  }
+
   const coreSkillBindings = {
-    'eup-research': 'market-researcher',
     'eup-analytics': 'ga4-analyst',
     'eup-strategy': 'marketing-strategist',
     'eup-social-content': 'social-media-manager',
@@ -264,9 +279,13 @@ function validateProject(projectRoot) {
     'eup-test': 'qa-tester',
     'eup-devops': 'devops-engineer'
   };
+  const optionalInlineSkills = new Set([
+    'eup-research'
+  ]);
 
   const requiredManualSkills = [
     'eup-market-cycle',
+    'eup-debate',
     'eup-dev-intake',
     'eup-implement',
     'eup-company-status'
@@ -306,6 +325,39 @@ function validateProject(projectRoot) {
 
     if (skill.frontmatter['disable-model-invocation'] !== 'true') {
       errors.push(`${skillName} must set disable-model-invocation: true to avoid uncontrolled auto-invocation`);
+    }
+  }
+
+  const orchestrationSkillChecks = {
+    'eup-market-cycle': [
+      /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i
+    ],
+    'eup-dev-intake': [
+      /shut down idle teammates and delete the dev-intake team with `TeamDelete` from the lead session/i
+    ],
+    'eup-implement': [
+      /Before `TeamCreate`, check whether this lead session is already managing another team/i,
+      /shut down idle teammates, call `TeamDelete` on the old team first/i,
+      /Teammates do not inherit the lead chat history/i,
+      /split it into additional self-contained tasks so teammates can self-claim/i,
+      /Wait for teammates to complete their tasks before the lead synthesizes/i,
+      /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i,
+      /Only report `team disbanded`.*after `TeamDelete` returns success/i
+    ]
+  };
+
+  for (const [skillName, patterns] of Object.entries(orchestrationSkillChecks)) {
+    const skill = skillMap.get(skillName);
+    if (!skill) {
+      errors.push(`Missing skill: ${skillName}`);
+      continue;
+    }
+
+    const content = readFile(skill.filePath);
+    for (const pattern of patterns) {
+      if (!pattern.test(content)) {
+        errors.push(`${skillName} is missing orchestration guidance matching ${pattern}`);
+      }
     }
   }
 
@@ -394,6 +446,18 @@ function validateProject(projectRoot) {
 
     if (skill.frontmatter.agent !== agentName) {
       errors.push(`${skillName} should bind to agent ${agentName}`);
+    }
+  }
+
+  for (const skillName of optionalInlineSkills) {
+    const skill = skillMap.get(skillName);
+    if (!skill) {
+      errors.push(`Missing skill: ${skillName}`);
+      continue;
+    }
+
+    if (skill.frontmatter.context === 'fork' && !hasText(skill.frontmatter.agent)) {
+      errors.push(`${skillName} must declare an agent when context: fork is used`);
     }
   }
 
@@ -709,6 +773,9 @@ function validateProject(projectRoot) {
     }
     if (!/dev-intake\.md/i.test(reportsReadme)) {
       errors.push('reports/README.md must document dev-intake.md');
+    }
+    if (!/debate-memo\.md/i.test(reportsReadme)) {
+      errors.push('reports/README.md must document debate-memo.md');
     }
   }
 

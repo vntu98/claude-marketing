@@ -19,6 +19,19 @@ Run this command inline as the team lead after approval.
 
 If any prerequisite is missing, stop and hand back to `implementation-planner` or the user.
 
+## Runtime Rules
+
+1. Before `TeamCreate`, check whether this lead session is already managing another team. If so, shut down idle teammates, call `TeamDelete` on the old team first, and confirm success before continuing.
+2. If `TeamDelete` fails, stop and tell the user which team is still active. Do not try to create a second team from the same lead session.
+3. Call `TeamCreate` only after the old team is fully deleted.
+4. If `TeamCreate` fails or is unavailable, stop and report that Agent Teams requires Claude Code CLI with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
+5. Start with 3-5 teammates. Scale up only when the approved task graph has enough truly independent work to justify more coordination.
+6. Teammates do not inherit the lead chat history. Every task packet must restate the business goal, constraints, exact file ownership, and validation expectations.
+7. When the approved workload is large, split it into additional self-contained tasks so teammates can self-claim new unblocked work without overlapping files.
+8. Wait for teammates to complete their tasks before the lead synthesizes, reviews, or starts implementing work itself.
+9. After implementation, review, and test tasks are complete, shut down idle teammates and delete the team with `TeamDelete` from the lead session.
+10. Only report `team disbanded`, `team fully disbanded`, or equivalent language after `TeamDelete` returns success.
+
 ## Default Team
 
 Dispatch 3-5 teammates total. Choose only the roles that the plan truly needs:
@@ -48,6 +61,7 @@ Each implementation task should include:
 - `Owner Role:`
 - `Phase:`
 - `Depends On:`
+- `Context:` with the business goal, constraints, and exact deliverable for that lane
 - `File Ownership:` with exact file globs
 - `Isolation: worktree`
 - `Acceptance Criteria:`
@@ -64,6 +78,9 @@ Example:
 Phase: implementation
 Owner Role: backend-engineer
 Depends On: task-db-schema
+Context:
+- Business goal: implement the approved tracking API for acquisition attribution
+- Constraints: keep the auth boundary unchanged and do not touch frontend-owned files
 File Ownership:
 - src/api/**
 - src/services/tracking/**
@@ -80,6 +97,7 @@ Validation:
 
 - monitor `TaskCompleted` and `TeammateIdle`
 - redirect teammates that drift outside their ownership boundary
+- use artifact or validation metadata when a lane must prove completion before the system accepts `TaskCompleted`
 - wait for teammates before synthesizing
 - report blockers immediately if task overlap or missing context makes the plan unsafe
 
@@ -89,3 +107,4 @@ Validation:
 - Do not assign the same file to two engineers.
 - Do not let the lead quietly implement instead of coordinating.
 - Do not bypass review or testing to make the flow look faster.
+- Do not let active teammates linger after review or testing is complete; clean them up from the lead session.

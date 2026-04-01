@@ -96,6 +96,7 @@ try {
         }`,
         `Active strategy artifact: ${activeStrategyLabel}`,
         `Active plan artifact: ${activePlanLabel}`,
+        'Teammates do not inherit the lead conversation history. Read the task packet `Context:` section before acting.',
         'Team mode: claim work via TaskUpdate, respect file ownership, and use SendMessage for direct coordination. Before stopping, mark owned tasks completed or blocked via TaskUpdate; do not rely on chat delivery alone.'
       ].join('\n')
     : '';

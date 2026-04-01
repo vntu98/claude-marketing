@@ -68,6 +68,9 @@ Every created team task must have a real task packet in `task_description`. Use 
 Phase: market-discovery
 Owner Role: market-researcher
 Depends On: none
+Context:
+- Business goal: explain the market question this lane must answer
+- Constraints: include brief-specific audience, geography, and evidence requirements because teammates do not inherit the lead chat history
 Artifacts:
 - reports/research/YYYYMMDD-[slug]/research-summary.md
 - reports/research/YYYYMMDD-[slug]/customer-signals.md
@@ -85,6 +88,8 @@ Optional metadata may still be attached when helpful:
 - `enforceArtifactsOnIdle`
 - `enforceValidationOnIdle`
 
+Use the optional metadata above when the lead must block `TaskCompleted` or `TeammateIdle` until artifacts exist or validation is explicitly recorded.
+
 ## Execution Sequence
 
 1. Derive `YYYYMMDD-[slug]` from the brief.
@@ -95,11 +100,11 @@ Optional metadata may still be attached when helpful:
    - competitor landscape and switching triggers
    - GA4 / channel analysis using `tools/ga4.js`, `tools/google-search-console.js`, `tools/semrush.js`, or ads tools when credentials exist
    - optional SEO or growth support lane
-   - each task description must declare `Phase`, `Owner Role`, `Depends On`, named `Artifacts`, `Acceptance Criteria`, and `Validation`
+   - each task description must declare `Phase`, `Owner Role`, `Depends On`, a short `Context`, named `Artifacts`, `Acceptance Criteria`, and `Validation`
 5. Spawn teammates using the project agent definitions by name.
 6. Monitor `TaskCompleted` and `TeammateIdle`. Reassign only when tasks are truly independent.
 7. After evidence tasks complete, dispatch `marketing-strategist` to synthesize `strategy-memo.md`.
-8. After all required artifacts exist and the strategy memo is saved, delete the team with `TeamDelete`.
+8. After all required artifacts exist and the strategy memo is saved, shut down idle teammates and delete the team with `TeamDelete` from the lead session.
 9. Only report `team disbanded`, `team fully disbanded`, or equivalent language after `TeamDelete` returns success.
 10. Report the saved research folder, strategy memo path, and the next recommended handoff.
 

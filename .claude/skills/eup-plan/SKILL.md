@@ -156,6 +156,7 @@ Approval Status: pending
 ### Additional artifacts
 
 - `task-graph.json` must define task ids, owners, dependencies, file globs, acceptance criteria, validation commands, and blocking policy
+- every task `taskDescription` must include `Context:` so teammates get task-specific instructions without relying on the lead's chat history
 - `ownership-matrix.md` must map every parallel lane to an exclusive file surface or worktree
 
 ### Phase File Template

@@ -23,6 +23,8 @@ market-researcher + competitor-analyst + ga4-analyst + seo-specialist|growth-man
       ↓
 marketing-strategist → reports/strategy/YYYYMMDD-[slug]/strategy-memo.md
       ↓
+/eup-debate (optional)
+      ↓
 /eup-dev-intake
       ↓
 project-manager + codebase-scout + technical-brainstormer
@@ -90,6 +92,7 @@ database-engineer + backend-engineer + frontend-engineer + mobile-engineer|fulls
 | Command | Role |
 |---------|------|
 | `eup-market-cycle` | Manual marketing intelligence run using Agent Teams and durable research artifacts |
+| `eup-debate` | Manual cross-company debate across marketing and dev before intake or planning is locked |
 | `eup-dev-intake` | Manual PM/scout/brainstorm intake that writes `dev-intake.md` and feeds planning |
 | `eup-implement` | Manual engineering execution from an approved plan and task graph |
 | `eup-company-status` | Manual company status summary across strategy, plan, approval, and team progress |
@@ -103,12 +106,13 @@ database-engineer + backend-engineer + frontend-engineer + mobile-engineer|fulls
 1. Run `/eup-context` first — skills and agents read `.claude/eup-context.md`
 2. `/eup-market-cycle` should save research artifacts under `reports/research/YYYYMMDD-[slug]/`, including `ga4-insights.md` and `channel-scorecard.md` when analytics are in scope
 3. `marketing-strategist` must save the handoff artifact at `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md` before dev intake starts
-4. `/eup-dev-intake` is blocked until that saved strategy memo is complete, and it should save `reports/strategy/YYYYMMDD-[slug]/dev-intake.md`
-5. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` plus `task-graph.json` and `ownership-matrix.md`; that plan becomes the active plan automatically
-6. No source-code implementation before the user explicitly approves the active plan
-7. The main session is the team lead. Teammates claim tasks, report progress through native task updates, and do not recursively spawn more teammates
-8. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files
-9. Each implementation agent owns distinct files or worktrees — zero overlap
+4. `/eup-debate` is the optional cross-company challenge step after strategy and before intake or planning when the decision still needs adversarial review
+5. `/eup-dev-intake` is blocked until that saved strategy memo is complete, and it should save `reports/strategy/YYYYMMDD-[slug]/dev-intake.md`
+6. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` plus `task-graph.json` and `ownership-matrix.md`; that plan becomes the active plan automatically
+7. No source-code implementation before the user explicitly approves the active plan
+8. The main session is the team lead. Teammates claim tasks, report progress through native task updates, and do not recursively spawn more teammates
+9. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files
+10. Each implementation agent owns distinct files or worktrees — zero overlap
 
 ## Senior Company Rule
 
