@@ -365,7 +365,7 @@ Rules for the report package:
 - Every named competitor must include strengths, weaknesses, pricing or packaging notes, positioning, and source-backed evidence
 - SWOT should be about our company or product, not a generic market SWOT
 - If evidence is weak, say so explicitly in `research-summary.md`
-- All files saved under `reports/**` must be written in Vietnamese for headings, summaries, analysis, and recommendations
+- All files saved under `reports/**` must be written in English for headings, summaries, analysis, and recommendations
 - Verbatim customer quotes, product names, event names, and raw source labels may stay in the original language when preserving fidelity matters
 
 Execution rules for direct command usage:

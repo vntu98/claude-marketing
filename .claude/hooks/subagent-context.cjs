@@ -33,15 +33,15 @@ function buildAgentReminder(agentName) {
   const normalized = (agentName || '').toLowerCase();
 
   if (['market-researcher', 'competitor-analyst', 'ga4-analyst'].includes(normalized)) {
-    return 'If you save artifacts under reports/**, write the analysis in Vietnamese. Keep verbatim source quotes in the original language when useful.';
+    return 'If you save artifacts under reports/**, write the analysis in English. Keep verbatim source quotes in the original language when useful.';
   }
 
   if (/(engineer|developer|devops)/.test(normalized) || normalized === 'qa-tester') {
-    return 'Implementation task packets must include File Ownership and `Isolation: worktree`. You may edit only the assigned files. If the plan is not approved, stop and report BLOCKED.';
+    return 'Implementation task packets must include File Ownership and `Isolation: worktree`. You may edit only the assigned files. If another lane owns a needed contract change, use SendMessage to the lead or that teammate instead of guessing or crossing ownership. If the plan is not approved, stop and report BLOCKED.';
   }
 
   if (['codebase-scout', 'technical-brainstormer', 'quality-reviewer'].includes(normalized)) {
-    return 'Read-only team lanes must save any requested handoff artifact, send the summary to the lead, and call TaskUpdate so the owned task is completed or blocked before stopping. Do not rely on chat delivery alone.';
+    return 'Read-only team lanes must save any requested handoff artifact, send the summary to the lead, and call TaskUpdate so the owned task is completed or blocked before stopping. If your findings materially conflict with another lane, use SendMessage before stopping so the team can converge. Do not rely on chat delivery alone.';
   }
 
   if (/(reviewer|tester)/.test(normalized)) {

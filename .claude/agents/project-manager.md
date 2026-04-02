@@ -1,7 +1,7 @@
 ---
 name: project-manager
 description: Turn strategy into backlog, ownership, dependencies, and a delegation brief for the main controller. Use proactively when strategy must become scoped delivery packets.
-tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

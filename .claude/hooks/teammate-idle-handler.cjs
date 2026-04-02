@@ -31,15 +31,20 @@ function parseOwnerRole(task) {
   return match ? match[2].trim().toLowerCase() : '';
 }
 
+function normalizeTeammateName(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
 function isActiveTask(task) {
   const status = String(task?.status || 'pending').trim().toLowerCase();
   return !status || status === 'pending' || status === 'in_progress' || status === 'running' || status === 'claimed';
 }
 
 function collectOwnedReadOnlyTasks(tasks, teammateName) {
+  const normalizedTeammate = normalizeTeammateName(teammateName);
   return tasks.filter((task) => {
-    const owner = task.owner || task.assignee || task?.metadata?.owner;
-    if (owner !== teammateName) {
+    const owner = normalizeTeammateName(task.owner || task.assignee || task?.metadata?.owner);
+    if (owner !== normalizedTeammate) {
       return false;
     }
 
@@ -53,10 +58,11 @@ function collectOwnedReadOnlyTasks(tasks, teammateName) {
 
 function collectIdleGuards(projectRoot, tasks, teammateName) {
   const failures = [];
+  const normalizedTeammate = normalizeTeammateName(teammateName);
 
   for (const task of tasks) {
-    const owner = task.owner || task.assignee || task?.metadata?.owner;
-    if (owner !== teammateName) {
+    const owner = normalizeTeammateName(task.owner || task.assignee || task?.metadata?.owner);
+    if (owner !== normalizedTeammate) {
       continue;
     }
 

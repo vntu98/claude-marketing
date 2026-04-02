@@ -107,12 +107,13 @@ database-engineer + backend-engineer + frontend-engineer + mobile-engineer|fulls
 2. `/eup-market-cycle` should save research artifacts under `reports/research/YYYYMMDD-[slug]/`, including `ga4-insights.md` and `channel-scorecard.md` when analytics are in scope
 3. `marketing-strategist` must save the handoff artifact at `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md` before dev intake starts
 4. `/eup-debate` is the optional cross-company challenge step after strategy and before intake or planning when the decision still needs adversarial review
-5. `/eup-dev-intake` is blocked until that saved strategy memo is complete, and it should save `reports/strategy/YYYYMMDD-[slug]/dev-intake.md`
-6. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` plus `task-graph.json` and `ownership-matrix.md`; that plan becomes the active plan automatically
-7. No source-code implementation before the user explicitly approves the active plan
-8. The main session is the team lead. Teammates claim tasks, report progress through native task updates, and do not recursively spawn more teammates
-9. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files
-10. Each implementation agent owns distinct files or worktrees — zero overlap
+5. When multiple strategy memos exist and no active strategy state is set, the most recently edited `reports/strategy/**/strategy-memo.md` becomes the active input for `/eup-dev-intake`
+6. `/eup-dev-intake` is blocked until that saved strategy memo is complete, and it should save `reports/strategy/YYYYMMDD-[slug]/dev-intake.md`
+7. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` plus `task-graph.json` and `ownership-matrix.md`; that plan becomes the active plan automatically
+8. No source-code implementation before the user explicitly approves the active plan
+9. The main session is the team lead. Teammates claim tasks, report progress through native task updates, and do not recursively spawn more teammates
+10. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files
+11. Each implementation agent owns distinct files or worktrees — zero overlap
 
 ## Senior Company Rule
 

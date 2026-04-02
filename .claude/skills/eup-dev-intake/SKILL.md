@@ -34,7 +34,7 @@ Run this command inline as the team lead. This workflow converts a saved strateg
 
 ## Execution Sequence
 
-1. Resolve the active strategy memo path and derive the target slug.
+1. Resolve the active strategy memo path and derive the target slug. If no explicit active strategy is recorded, use the most recently edited `reports/strategy/**/strategy-memo.md`.
 2. Before `TeamCreate`, check whether this lead session is already managing another team. If so, call `TeamDelete` on the old team first and confirm success before continuing.
 3. If `TeamDelete` fails, stop and tell the user which team is still active. Do not try to create a second team from the same lead session.
 4. Call `TeamCreate`. If unavailable, stop and report that Agent Teams requires Claude Code CLI with the experimental flag enabled.

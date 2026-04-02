@@ -1,7 +1,7 @@
 ---
 name: quality-reviewer
 description: Review approved changes for correctness, security, performance, and regression risk before release. Use proactively after implementation to surface blocking findings.
-tools: Read, Glob, Grep, Bash, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Bash, Write, Edit, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

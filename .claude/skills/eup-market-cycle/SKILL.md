@@ -79,7 +79,7 @@ Acceptance Criteria:
 - Sources and quotes are saved
 Validation:
 - Confirm required artifacts exist
-- Confirm report analysis is written in Vietnamese
+- Confirm report analysis is written in English
 ```
 
 Optional metadata may still be attached when helpful:

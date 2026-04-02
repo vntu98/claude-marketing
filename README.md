@@ -24,6 +24,7 @@ Optional:
 The company runtime now enforces these operating rules:
 
 - `TaskCreated` validates that every team task includes a real task packet with owner, dependencies, task-specific context, acceptance criteria, and validation.
+- The main session is the team lead: it creates tasks, assigns owners, and tears teams down. Teammates only claim, update, validate, and report work.
 - Implementation writes are allowed only when the active plan bundle is truly ready: `Approval Status: approved`, valid `task-graph.json`, and non-empty `ownership-matrix.md`.
 - Session snapshots are persisted under `.claude/session-state/` and replayed on `startup`, `resume`, and `compact` so work can continue without re-scoping from memory.
 - Teammates receive richer `SubagentStart` context: peers, assigned tasks, active strategy artifact, active plan artifact, and current team progress.
@@ -74,7 +75,50 @@ All 20 employees below are senior-only. They are expected to lead with trade-off
 | `qa-tester` | Run real tests/builds and only author tests in approved test scope |
 | `devops-engineer` | Own CI/CD, release automation, and deploy only on explicit go-live request |
 
-## The Pipeline
+## Operating Modes
+
+Use `subagent` for small or still-fuzzy work. Use `agent team` when the task has independent lanes with clean ownership.
+
+### 1. Subagent / Sequential
+
+```text
+/eup-context
+-> /eup-research
+-> /eup-strategy
+-> /eup-debate (optional)
+-> /eup-pm
+-> /eup-scout
+-> /eup-brainstorm
+-> /eup-plan
+-> ⛔ USER APPROVAL
+-> /eup-db | /eup-backend | /eup-frontend | /eup-mobile | /eup-code
+-> /eup-review
+-> /eup-test
+-> /eup-devops (optional)
+```
+
+### 2. Agent Teams / Orchestrated
+
+```text
+/eup-context
+-> /eup-market-cycle
+-> market-researcher + competitor-analyst + ga4-analyst + seo-specialist|growth-manager
+-> marketing-strategist
+-> /eup-debate (optional)
+-> /eup-dev-intake
+-> project-manager + codebase-scout + technical-brainstormer
+-> implementation-planner
+-> ⛔ USER APPROVAL
+-> /eup-implement
+-> database-engineer + backend-engineer + frontend-engineer + mobile-engineer|fullstack-developer
+-> quality-reviewer
+-> qa-tester
+-> /eup-devops (explicit ship)
+```
+
+Rule of thumb: if the work needs a shared task list and non-overlapping ownership, use Agent Teams. Otherwise, stay sequential.
+
+### Default Company Flow
 
 ```text
 MARKETING                                               DEV

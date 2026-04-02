@@ -1,7 +1,7 @@
 ---
 name: backend-engineer
 description: Implement APIs, auth, services, integrations, and server-side workflows from an approved plan. Use proactively when approved work touches server-side behavior.
-tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

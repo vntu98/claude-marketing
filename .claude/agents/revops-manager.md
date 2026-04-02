@@ -1,7 +1,7 @@
 ---
 name: revops-manager
 description: Design lifecycle stages, routing, CRM automation, and marketing-to-sales handoff rules for the revenue engine. Use proactively when lifecycle automation or handoff design is required.
-tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

@@ -27,10 +27,11 @@ If any prerequisite is missing, stop and hand back to `implementation-planner` o
 4. If `TeamCreate` fails or is unavailable, stop and report that Agent Teams requires Claude Code CLI with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
 5. Start with 3-5 teammates. Scale up only when the approved task graph has enough truly independent work to justify more coordination.
 6. Teammates do not inherit the lead chat history. Every task packet must restate the business goal, constraints, exact file ownership, and validation expectations.
-7. When the approved workload is large, split it into additional self-contained tasks so teammates can self-claim new unblocked work without overlapping files.
-8. Wait for teammates to complete their tasks before the lead synthesizes, reviews, or starts implementing work itself.
-9. After implementation, review, and test tasks are complete, shut down idle teammates and delete the team with `TeamDelete` from the lead session.
-10. Only report `team disbanded`, `team fully disbanded`, or equivalent language after `TeamDelete` returns success.
+7. For schema, auth, infra, or other hard-to-reverse lanes, require native teammate plan approval before code changes. Approve only plans that name owned files, rollback steps, and validation commands.
+8. When the approved workload is large, split it into additional self-contained tasks so teammates can self-claim new unblocked work without overlapping files.
+9. Wait for teammates to complete their tasks before the lead synthesizes, reviews, or starts implementing work itself.
+10. After implementation, review, and test tasks are complete, shut down idle teammates and delete the team with `TeamDelete` from the lead session.
+11. Only report `team disbanded`, `team fully disbanded`, or equivalent language after `TeamDelete` returns success.
 
 ## Default Team
 
@@ -50,7 +51,7 @@ Dispatch 3-5 teammates total. Choose only the roles that the plan truly needs:
 3. Split work strictly by file ownership from `ownership-matrix.md`.
 4. Use worktree isolation for parallel engineering work.
 5. Collapse overlapping work into a single engineer lane instead of creating conflicts.
-6. For risky lanes like schema, auth, or infra, require a plan-first pass from the teammate before code changes.
+6. For risky lanes like schema, auth, or infra, require a plan-first pass from the teammate before code changes by using native teammate plan approval. Only approve if the mini-plan names owned files, rollback, and validation.
 7. Run `quality-reviewer` before `qa-tester`.
 8. Keep `devops-engineer` out of the team unless the user explicitly asks for release work.
 
@@ -71,6 +72,48 @@ Each implementation task should include:
   - `validationCommands`
   - `enforceArtifactsOnIdle`
   - `enforceValidationOnIdle`
+
+Use role-specific packets for downstream quality gates instead of reusing an engineer packet blindly.
+
+For `quality-reviewer` lanes, require an explicit read scope:
+
+```text
+Phase: verification
+Owner Role: quality-reviewer
+Depends On: task-frontend
+Context:
+- Business goal: review the approved implementation for correctness, regression risk, and missing tests
+- Constraints: read-only lane; cite the active plan, changed files, and trust boundaries reviewed
+Read Scope:
+- src/**
+- plans/<slug>/plan.md
+Acceptance Criteria:
+- findings are prioritized by severity
+- missing validation and regression risks are called out explicitly
+Validation:
+- confirm the saved plan and changed files were reviewed
+```
+
+For `qa-tester` lanes, require explicit validation scope plus test-only ownership when edits are allowed:
+
+```text
+Phase: verification
+Owner Role: qa-tester
+Depends On: task-review
+Context:
+- Business goal: run the real validation commands for the approved implementation and report exact outcomes
+- Constraints: validation-first lane; only add or edit tests when that is explicitly in scope
+File Ownership:
+- test/**
+- e2e/**
+Isolation: worktree
+Acceptance Criteria:
+- named commands are executed and the results are reported exactly
+- any authored tests stay inside the approved test scope
+Validation:
+- npm test
+- npm run build
+```
 
 Example:
 

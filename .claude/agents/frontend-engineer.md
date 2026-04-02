@@ -1,7 +1,7 @@
 ---
 name: frontend-engineer
 description: Implement web UI, forms, flows, and client behavior from an approved plan. Use proactively when approved work touches web UX or client behavior.
-tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

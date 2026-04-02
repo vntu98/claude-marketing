@@ -339,6 +339,7 @@ function validateProject(projectRoot) {
       /Before `TeamCreate`, check whether this lead session is already managing another team/i,
       /shut down idle teammates, call `TeamDelete` on the old team first/i,
       /Teammates do not inherit the lead chat history/i,
+      /require native teammate plan approval before code changes/i,
       /split it into additional self-contained tasks so teammates can self-claim/i,
       /Wait for teammates to complete their tasks before the lead synthesizes/i,
       /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i,
@@ -391,10 +392,14 @@ function validateProject(projectRoot) {
     }
 
     const tools = agent.frontmatter.tools || [];
-    for (const requiredTool of ['TaskCreate', 'TaskGet', 'TaskUpdate', 'TaskList', 'SendMessage']) {
+    for (const requiredTool of ['TaskGet', 'TaskUpdate', 'TaskList', 'SendMessage']) {
       if (!tools.includes(requiredTool)) {
         errors.push(`Agent ${agentName} must allow ${requiredTool} for team-ready execution`);
       }
+    }
+
+    if (tools.includes('TaskCreate')) {
+      errors.push(`Agent ${agentName} must not allow TaskCreate; only the lead should create new team tasks`);
     }
   }
 
@@ -544,8 +549,8 @@ function validateProject(projectRoot) {
       errors.push('eup-research must allow Write and Edit so research reports can be saved under reports/**');
     }
 
-    if (!/tiếng Việt|Vietnamese/i.test(researchContent)) {
-      errors.push('eup-research must explicitly require Vietnamese writing for reports/** artifacts');
+    if (!/English/i.test(researchContent)) {
+      errors.push('eup-research must explicitly require English writing for reports/** artifacts');
     }
   }
 
@@ -667,10 +672,10 @@ function validateProject(projectRoot) {
     errors.push('Missing research report template reference: .claude/skills/eup-research/references/report-template.md');
   } else {
     const reportTemplate = readFile(reportTemplatePath);
-    if (!/Tóm Tắt Nghiên Cứu/i.test(reportTemplate) || !/Ngân Hàng Trích Dẫn/i.test(reportTemplate)) {
-      errors.push('Research report template must be localized for Vietnamese report output');
+    if (!/Research Summary/i.test(reportTemplate) || !/Quote Bank/i.test(reportTemplate)) {
+      errors.push('Research report template must provide English report headings');
     }
-    if (!/competitor-landscape\.md/i.test(reportTemplate) || !/SWOT Của Chúng Ta/i.test(reportTemplate)) {
+    if (!/competitor-landscape\.md/i.test(reportTemplate) || !/Our SWOT/i.test(reportTemplate)) {
       errors.push('Research report template must include competitor-landscape.md and SWOT structure');
     }
   }
@@ -729,14 +734,14 @@ function validateProject(projectRoot) {
     const strategyTemplate = readFile(strategyMemoTemplatePath);
     const requiredTemplatePatterns = [
       /reports\/strategy\/YYYYMMDD-\[slug\]\/strategy-memo\.md/i,
-      /Đối Tượng Ưu Tiên \(Target Audience\)/i,
-      /Định Vị \(Positioning\)/i,
-      /Ưu Tiên Kênh \(Channel Priorities\)/i,
-      /Thí Nghiệm Ưu Tiên \(Priority Experiments\)/i,
-      /Ghi Chú Đo Lường \(Measurement Notes\)/i,
-      /Yêu Cầu Cho Dev \(Concrete Dev Asks\)/i,
-      /Gói Bàn Giao PM \(PM Intake Packet\)/i,
-      /Bàn Giao Vai Trò \(Role Handoffs\)/i
+      /^##\s+Target Audience$/im,
+      /^##\s+Positioning$/im,
+      /^##\s+Channel Priorities$/im,
+      /^##\s+Priority Experiments$/im,
+      /^##\s+Measurement Notes$/im,
+      /^##\s+Concrete Dev Asks$/im,
+      /^##\s+PM Intake Packet$/im,
+      /^##\s+Role Handoffs$/im
     ];
     for (const pattern of requiredTemplatePatterns) {
       if (!pattern.test(strategyTemplate)) {

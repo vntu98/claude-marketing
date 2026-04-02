@@ -1,7 +1,7 @@
 ---
 name: growth-manager
 description: Optimize signup, onboarding activation, pricing, paywalls, and experiment backlog for the language-learning growth funnel. Use proactively when acquisition, activation, or monetization work is in scope.
-tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

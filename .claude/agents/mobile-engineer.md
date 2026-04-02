@@ -1,7 +1,7 @@
 ---
 name: mobile-engineer
 description: Implement Flutter and mobile app changes from an approved plan. Use proactively when approved work touches mobile UI, state, or platform integrations.
-tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

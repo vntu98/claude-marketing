@@ -1,75 +1,75 @@
-# Mẫu Strategy Memo
+# Strategy Memo Template
 
-Use cấu trúc này cho mọi strategy handoff được lưu tại:
+Use this structure for every saved strategy handoff at:
 
 `reports/strategy/YYYYMMDD-[slug]/strategy-memo.md`
 
 Rules:
-- Phần phân tích, quyết định, và khuyến nghị phải viết bằng tiếng Việt vì artifact nằm dưới `reports/**`
-- Một memo chỉ nên chốt một quyết định chiến lược hoặc một initiative gần nhau
-- Nếu downstream là PM hoặc implementation planning, phải điền đầy đủ `Yêu Cầu Cho Dev`, `Gói Bàn Giao PM`, và `Bàn Giao Vai Trò`
+- Analysis, decisions, and recommendations must be written in English
+- A memo should lock only one strategic decision or one tightly related initiative
+- If the downstream consumer is PM or implementation planning, fully populate `Concrete Dev Asks`, `PM Intake Packet`, and `Role Handoffs`
 
 ## strategy-memo.md
 
 ```markdown
 # Strategy Memo
 
-## Tóm Tắt Điều Hành
-- Bối cảnh và mục tiêu kinh doanh
-- Quyết định cần chốt
+## Executive Summary
+- Business context and goal
+- Decision to finalize
 - Confidence level
 
-## Đối Tượng Ưu Tiên (Target Audience)
-- ICP / segment ưu tiên
-- Pain hoặc job quan trọng nhất
-- Evidence reference chính
+## Target Audience
+- Priority ICP / segment
+- Most important pain or job
+- Primary evidence reference
 
-## Định Vị (Positioning)
-- Problem để lead
-- Promise cần đưa ra
-- Message cần tránh hoặc frame đối thủ cần reject
+## Positioning
+- Problem to lead with
+- Promise to make
+- Message to avoid or competitor frame to reject
 
-## Wedge Chiến Lược
-- Vì sao chọn wedge này ngay bây giờ
-- Vì sao không chọn các wedge còn lại
-- Non-goals rõ ràng
+## Strategic Wedge
+- Why this wedge now
+- Why the other wedges lost
+- Explicit non-goals
 
-## Ưu Tiên Kênh (Channel Priorities)
-| Kênh | Vai trò | Lý do ưu tiên | Điều kiện để thắng |
+## Channel Priorities
+| Channel | Role | Why it matters now | Conditions to win |
 |------|---------|---------------|--------------------|
 | Search / SEO | ... | ... | ... |
 | Social | ... | ... | ... |
 
-## Thí Nghiệm Ưu Tiên (Priority Experiments)
-| Thí nghiệm | Mục tiêu | Confidence | Owner | Gating |
+## Priority Experiments
+| Experiment | Goal | Confidence | Owner | Gating |
 |------------|----------|------------|-------|--------|
 | ... | ... | High / Medium / Low | ... | ... |
 
-## Ghi Chú Đo Lường (Measurement Notes)
-- KPI chính
+## Measurement Notes
+- Primary KPI
 - Instrumentation gap
 - Success criteria
-- Owner theo dõi
+- Measurement owner
 
-## Yêu Cầu Cho Dev (Concrete Dev Asks)
-- Surface hoặc flow cần build/chỉnh
+## Concrete Dev Asks
+- Surface or flow to build or update
 - Tracking / analytics requirements
 - Automation / CMS / integration needs
-- Phụ thuộc hoặc preconditions
+- Dependencies or preconditions
 
-## Gói Bàn Giao PM (PM Intake Packet)
-- Business outcome cần technical support
-- User flow hoặc ops flow nằm trong scope
+## PM Intake Packet
+- Business outcome needing technical support
+- User or ops flow in scope
 - Required surfaces
 - Tracking requirements
 - Dependencies
 - Risks / unknowns
 - Out of scope
 
-## Bàn Giao Vai Trò (Role Handoffs)
-- `project-manager`: scope backlog nào trước
-- `social-media-manager`: cần làm gì tiếp theo
-- `seo-specialist`: cần refine IA / content / discoverability gì
-- `revops-manager`: lifecycle / CRM / routing nào cần chuẩn bị
-- `growth-manager`: funnel hoặc monetization hypothesis nào cần nhận tiếp
+## Role Handoffs
+- `project-manager`: which backlog slice to scope first
+- `social-media-manager`: what to do next
+- `seo-specialist`: which IA, content, or discoverability area to refine
+- `revops-manager`: which lifecycle, CRM, or routing preparation is needed
+- `growth-manager`: which funnel or monetization hypothesis to pick up next
 ```

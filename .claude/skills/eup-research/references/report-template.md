@@ -1,40 +1,40 @@
-# Mẫu Báo Cáo Nghiên Cứu
+# Research Report Template
 
 Use this structure for every package under `reports/research/YYYYMMDD-[slug]/`.
 
 Rules:
-- Phần phân tích, tóm tắt, nhận định, và khuyến nghị phải viết bằng tiếng Việt
-- Trích dẫn nguyên văn có thể giữ nguyên ngôn ngữ nguồn
+- Analysis, summaries, interpretations, and recommendations must be written in English
+- Verbatim quotes may stay in the original source language
 
 ## research-summary.md
 
 ```markdown
-# Tóm Tắt Nghiên Cứu
+# Research Summary
 
-## Tóm Tắt Điều Hành
-- Đã nghiên cứu phân khúc hoặc thị trường nào
-- Kết luận chính
-- Mức độ tin cậy
+## Executive Summary
+- Which segment or market was researched
+- Key conclusions
+- Confidence level
 
-## Chủ Đề Nổi Bật
-1. [Chủ đề]
-2. [Chủ đề]
-3. [Chủ đề]
+## Top Themes
+1. [Theme]
+2. [Theme]
+3. [Theme]
 
-## Hàm Ý Chiến Lược
-- Hàm ý cho messaging
-- Hàm ý cho sản phẩm
-- Hàm ý cho GTM
+## Strategic Implications
+- Messaging implications
+- Product implications
+- GTM implications
 
-## Hành Động Đề Xuất
-- [Hành động]
-- [Hành động]
+## Recommended Actions
+- [Action]
+- [Action]
 ```
 
 ## customer-signals.md
 
 ```markdown
-# Tín Hiệu Khách Hàng
+# Customer Signals
 
 ## Jobs To Be Done
 - Functional job:
@@ -42,7 +42,7 @@ Rules:
 - Social job:
 
 ## Pain Points
-- Ưu tiên các pain được nhắc tự nhiên và có cảm xúc rõ
+- Prioritize pains that are mentioned naturally and with strong emotion
 
 ## Trigger Events
 - Team growth
@@ -52,10 +52,10 @@ Rules:
 - Competitor doing something
 
 ## Desired Outcomes
-- Dùng trích dẫn nguyên văn khi có thể
+- Use verbatim quotes whenever possible
 
 ## Language And Vocabulary
-- Từ ngữ và cụm từ khách hàng dùng thật
+- Actual words and phrases customers use
 
 ## Alternatives Considered
 - Do nothing
@@ -68,56 +68,56 @@ Rules:
 ## quote-bank.md
 
 ```markdown
-# Ngân Hàng Trích Dẫn
+# Quote Bank
 
-## Trích Dẫn Về Pain
+## Pain Quotes
 - "[exact quote]" — [source] — [date]
 
-## Trích Dẫn Về Trigger
+## Trigger Quotes
 - "[exact quote]" — [source] — [date]
 
-## Trích Dẫn Về Desired Outcome
+## Desired Outcome Quotes
 - "[exact quote]" — [source] — [date]
 
-## Trích Dẫn Về Vocabulary
+## Vocabulary Quotes
 - "[exact quote]" — [source] — [date]
 ```
 
 ## sources.md
 
 ```markdown
-# Nguồn
+# Sources
 
-| Nguồn | Loại | Phân khúc | Ngày | Ghi chú |
+| Source | Type | Segment | Date | Notes |
 |------|------|-----------|------|--------|
-| [url hoặc file path] | review/interview/forum | [segment] | [date] | [ghi chú về bias hoặc độ tin cậy] |
+| [url or file path] | review/interview/forum | [segment] | [date] | [bias or confidence note] |
 ```
 
 ## competitor-landscape.md
 
 ```markdown
-# Bản Đồ Cạnh Tranh
+# Competitor Landscape
 
 ## Market Map
 
-| Nhóm | Đối thủ | ICP / use case | Vì sao khách hàng cân nhắc |
+| Category | Competitor | ICP / use case | Why buyers consider them |
 |------|---------|----------------|----------------------------|
-| Direct | [Tên] | [Ai dùng] | [Lý do] |
-| Secondary | [Tên] | [Ai dùng] | [Lý do] |
-| Substitute | [Tên] | [Ai dùng] | [Lý do] |
+| Direct | [Name] | [Who they serve] | [Reason] |
+| Secondary | [Name] | [Who they serve] | [Reason] |
+| Substitute | [Name] | [Who they serve] | [Reason] |
 
 ## Comparison Matrix
 
-| Đối thủ | Loại | Positioning | Strengths | Weaknesses | Pricing / packaging | Review themes | SEO / content posture | Win / loss guidance | Nguồn |
+| Competitor | Type | Positioning | Strengths | Weaknesses | Pricing / packaging | Review themes | SEO / content posture | Win / loss guidance | Sources |
 |---------|------|-------------|-----------|------------|---------------------|---------------|-----------------------|---------------------|-------|
-| [Tên] | Direct | [...] | [...] | [...] | [...] | [...] | [...] | [...] | [...] |
+| [Name] | Direct | [...] | [...] | [...] | [...] | [...] | [...] | [...] | [...] |
 
-## Hàm Ý Cạnh Tranh
-- Đối thủ nào đang thiết lập kỳ vọng của buyer
-- Khoảng trống message / sản phẩm / SEO có thể khai thác
-- Khi nào nên cạnh tranh trực diện, khi nào nên đổi góc
+## Competitive Implications
+- Which competitors are setting buyer expectations
+- Message, product, or SEO gaps we can exploit
+- When to compete head-on versus when to change the frame
 
-## SWOT Của Chúng Ta
+## Our SWOT
 
 ### Strengths
 - ...

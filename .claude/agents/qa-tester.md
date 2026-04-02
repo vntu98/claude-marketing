@@ -1,7 +1,7 @@
 ---
 name: qa-tester
 description: Run relevant tests, build checks, and coverage verification for approved work; add tests when that is explicitly in scope. Use proactively after review when the workflow needs real verification.
-tools: Read, Glob, Grep, Bash, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Bash, Write, Edit, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

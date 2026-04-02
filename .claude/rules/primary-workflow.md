@@ -34,6 +34,7 @@ All roles in this workflow operate at a senior or staff-level bar. Outputs shoul
 ## 5. Technical Intake
 
 - Prefer `/eup-dev-intake` as the orchestration entrypoint when PM, scout, and brainstorm work should run as an Agent Team.
+- The most recently edited `reports/strategy/**/strategy-memo.md` becomes the active strategy input when no explicit active-strategy state is present.
 - `project-manager` converts the saved strategy memo into backlog items, dependencies, file ownership, and `reports/strategy/**/dev-intake.md`.
 - `project-manager` is blocked until a complete `reports/strategy/**/strategy-memo.md` exists.
 - `codebase-scout` maps the existing codebase before planning or implementation, usually through `/eup-scout`.

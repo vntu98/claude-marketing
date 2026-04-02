@@ -33,24 +33,24 @@ Save competitor work to `reports/research/YYYYMMDD-[slug]/competitor-landscape.m
 Suggested structure:
 
 ```markdown
-# Bản Đồ Cạnh Tranh
+# Competitor Landscape
 
 ## Market Map
 
-| Nhóm | Đối thủ | ICP / use case | Vì sao khách hàng cân nhắc |
+| Category | Competitor | ICP / use case | Why buyers consider them |
 |------|---------|----------------|----------------------------|
 
 ## Comparison Matrix
 
-| Đối thủ | Loại | Positioning | Strengths | Weaknesses | Pricing / packaging | Review themes | SEO / content posture | Win / loss guidance | Nguồn |
+| Competitor | Type | Positioning | Strengths | Weaknesses | Pricing / packaging | Review themes | SEO / content posture | Win / loss guidance | Sources |
 |---------|------|-------------|-----------|------------|---------------------|---------------|-----------------------|---------------------|-------|
 
-## Nhận Định Chính
-- Đối thủ nào mạnh nhất ở từng tình huống
-- Khoảng trống message / sản phẩm / SEO
-- Khi nào nên cạnh tranh trực diện, khi nào nên đổi góc
+## Key Takeaways
+- Which competitors are strongest in each situation
+- Message, product, or SEO gaps
+- When to compete directly versus when to change the angle
 
-## SWOT Của Chúng Ta
+## Our SWOT
 
 ### Strengths
 - ...

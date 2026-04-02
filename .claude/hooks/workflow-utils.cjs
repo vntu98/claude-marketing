@@ -33,35 +33,35 @@ const QA_TEST_FILE_PATTERNS = [
 const STRATEGY_REQUIRED_SECTIONS = [
   {
     label: 'target audience',
-    pattern: /^##\s+.*(?:Target Audience|Đối Tượng Ưu Tiên).*$/im
+    pattern: /^##\s+.*Target Audience.*$/im
   },
   {
     label: 'positioning',
-    pattern: /^##\s+.*(?:Positioning|Định Vị).*$/im
+    pattern: /^##\s+.*Positioning.*$/im
   },
   {
     label: 'channel priorities',
-    pattern: /^##\s+.*(?:Channel Priorities|Ưu Tiên Kênh).*$/im
+    pattern: /^##\s+.*Channel Priorities.*$/im
   },
   {
     label: 'priority experiments',
-    pattern: /^##\s+.*(?:Priority Experiments|Thí Nghiệm Ưu Tiên).*$/im
+    pattern: /^##\s+.*Priority Experiments.*$/im
   },
   {
     label: 'measurement notes',
-    pattern: /^##\s+.*(?:Measurement Notes|Ghi Chú Đo Lường).*$/im
+    pattern: /^##\s+.*Measurement Notes.*$/im
   },
   {
     label: 'concrete dev asks',
-    pattern: /^##\s+.*(?:Concrete Dev Asks|Yêu Cầu Cho Dev).*$/im
+    pattern: /^##\s+.*Concrete Dev Asks.*$/im
   },
   {
     label: 'PM intake packet',
-    pattern: /^##\s+.*(?:PM Intake Packet|Gói Bàn Giao PM).*$/im
+    pattern: /^##\s+.*PM Intake Packet.*$/im
   },
   {
     label: 'role handoffs',
-    pattern: /^##\s+.*(?:Role Handoffs|Bàn Giao Vai Trò).*$/im
+    pattern: /^##\s+.*Role Handoffs.*$/im
   }
 ];
 const TASK_GRAPH_REQUIRED_FIELDS = [
@@ -345,6 +345,41 @@ function getTaskDependencies(task) {
   return Array.isArray(candidate) ? candidate.filter(Boolean) : [];
 }
 
+function normalizeTaskStatus(status) {
+  return String(status || 'pending').trim().toLowerCase().replace(/-/g, '_');
+}
+
+function isCompletedTaskStatus(status) {
+  return normalizeTaskStatus(status) === 'completed';
+}
+
+function isInProgressTaskStatus(status) {
+  return ['in_progress', 'running', 'claimed'].includes(normalizeTaskStatus(status));
+}
+
+function getFileMtimeMs(filePath) {
+  try {
+    return fs.statSync(filePath).mtimeMs || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function pickMostRecentlyModified(files) {
+  if (!Array.isArray(files) || !files.length) {
+    return null;
+  }
+
+  return [...files].sort((left, right) => {
+    const delta = getFileMtimeMs(right) - getFileMtimeMs(left);
+    if (delta !== 0) {
+      return delta;
+    }
+
+    return right.localeCompare(left);
+  })[0] || null;
+}
+
 function summarizeTeamTasks(teamName) {
   const tasks = readTeamTasks(teamName);
   if (!tasks.length) {
@@ -359,7 +394,7 @@ function summarizeTeamTasks(teamName) {
 
   const completedIds = new Set(
     tasks
-      .filter((task) => task.status === 'completed')
+      .filter((task) => isCompletedTaskStatus(task.status))
       .map((task) => String(task.id))
   );
 
@@ -372,13 +407,13 @@ function summarizeTeamTasks(teamName) {
   };
 
   for (const task of tasks) {
-    const status = task.status || 'pending';
-    if (status === 'completed') {
+    const status = normalizeTaskStatus(task.status);
+    if (isCompletedTaskStatus(status)) {
       summary.completed += 1;
       continue;
     }
 
-    if (status === 'in_progress') {
+    if (isInProgressTaskStatus(status)) {
       summary.inProgress += 1;
       continue;
     }
@@ -386,7 +421,7 @@ function summarizeTeamTasks(teamName) {
     summary.pending += 1;
     const dependencies = getTaskDependencies(task).map(String);
     const isUnblocked = dependencies.every((dependency) => completedIds.has(dependency));
-    if (isUnblocked && !task.owner) {
+    if (isUnblocked && !formatTaskOwner(task)) {
       summary.unblocked.push({
         id: String(task.id),
         subject: task.subject || task.title || 'Untitled task',
@@ -761,9 +796,15 @@ function listAssignedTeamTasks(teamName, teammateName) {
   return readTeamTasks(teamName)
     .filter((task) => String(formatTaskOwner(task) || '').trim().toLowerCase() === normalizedTeammate)
     .sort((left, right) => {
-      const statusWeight = { in_progress: 0, pending: 1, completed: 2 };
-      const leftWeight = statusWeight[left.status] ?? 3;
-      const rightWeight = statusWeight[right.status] ?? 3;
+      const statusWeight = {
+        in_progress: 0,
+        running: 0,
+        claimed: 0,
+        pending: 1,
+        completed: 2
+      };
+      const leftWeight = statusWeight[normalizeTaskStatus(left.status)] ?? 3;
+      const rightWeight = statusWeight[normalizeTaskStatus(right.status)] ?? 3;
       if (leftWeight !== rightWeight) {
         return leftWeight - rightWeight;
       }
@@ -1008,6 +1049,21 @@ function readStrategyState(projectRoot) {
     };
   }
 
+  if (memoFiles.length > 1) {
+    const latestMemo = pickMostRecentlyModified(memoFiles);
+    if (latestMemo) {
+      const memoState = evaluateStrategyMemo(latestMemo);
+      return {
+        ready: memoState.ready,
+        memoPath: latestMemo,
+        activeStrategy: latestMemo,
+        missingSections: memoState.missingSections,
+        totalMemos: memoFiles.length,
+        resolution: 'latest'
+      };
+    }
+  }
+
   return {
     ready: false,
     memoPath: null,
@@ -1051,6 +1107,24 @@ function readApprovalState(projectRoot) {
       resolution: 'single',
       ...bundle
     };
+  }
+
+  if (planFiles.length > 1) {
+    const latestPlan = pickMostRecentlyModified(planFiles);
+    if (latestPlan) {
+      const planState = matchApprovalState(latestPlan);
+      const bundle = readPlanBundleState(latestPlan);
+      return {
+        approved: planState.approved,
+        approvedPlan: planState.approved ? latestPlan : null,
+        pendingPlan: planState.pending ? latestPlan : null,
+        activePlan: latestPlan,
+        implementationReady: planState.approved && bundle.ready,
+        totalPlans: planFiles.length,
+        resolution: 'latest',
+        ...bundle
+      };
+    }
   }
 
   let approvedCount = 0;
@@ -1244,6 +1318,8 @@ function buildWorkflowSummary(projectRoot) {
   const approval = readApprovalState(projectRoot);
   const strategy = readStrategyState(projectRoot);
   const teamRuntime = readTeamRuntimeState(projectRoot);
+  const latestPlanNote = approval.resolution === 'latest' ? '; auto-selected latest plan.md' : '';
+  const latestStrategyNote = strategy.resolution === 'latest' ? '; auto-selected latest strategy memo' : '';
   const activePlanLabel = approval.activePlan
     ? normalizeRelative(projectRoot, approval.activePlan)
     : 'none';
@@ -1253,14 +1329,14 @@ function buildWorkflowSummary(projectRoot) {
 
   let planStatus = 'missing';
   if (approval.approved && approval.approvedPlan && approval.implementationReady) {
-    planStatus = `approved (${normalizeRelative(projectRoot, approval.approvedPlan)})`;
+    planStatus = `approved (${normalizeRelative(projectRoot, approval.approvedPlan)}${latestPlanNote})`;
   } else if (approval.approvedPlan) {
     const blockers = summarizePlanBundleIssues(approval);
     planStatus =
       `approved-but-blocked (${normalizeRelative(projectRoot, approval.approvedPlan)}; ` +
-      `${blockers.join('; ') || 'runtime artifacts incomplete'})`;
+      `${blockers.join('; ') || 'runtime artifacts incomplete'}${latestPlanNote})`;
   } else if (approval.pendingPlan) {
-    planStatus = `pending (${normalizeRelative(projectRoot, approval.pendingPlan)})`;
+    planStatus = `pending (${normalizeRelative(projectRoot, approval.pendingPlan)}${latestPlanNote})`;
   } else if (approval.resolution === 'ambiguous') {
     planStatus =
       `blocked (multiple plans exist; set the active plan by editing the target plan.md. ` +
@@ -1269,11 +1345,11 @@ function buildWorkflowSummary(projectRoot) {
 
   let strategyStatus = 'missing';
   if (strategy.ready && strategy.memoPath) {
-    strategyStatus = `ready (${normalizeRelative(projectRoot, strategy.memoPath)})`;
+    strategyStatus = `ready (${normalizeRelative(projectRoot, strategy.memoPath)}${latestStrategyNote})`;
   } else if (strategy.memoPath) {
     strategyStatus =
       `incomplete (${normalizeRelative(projectRoot, strategy.memoPath)}; ` +
-      `missing: ${strategy.missingSections.join(', ')})`;
+      `missing: ${strategy.missingSections.join(', ')}${latestStrategyNote})`;
   } else if (strategy.resolution === 'ambiguous') {
     strategyStatus =
       `blocked (multiple strategy memos exist; set the active strategy by editing the target ` +

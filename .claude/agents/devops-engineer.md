@@ -1,7 +1,7 @@
 ---
 name: devops-engineer
 description: Implement CI/CD, deployment configuration, and release automation from an approved plan; perform live deploys only on explicit request. Use proactively when approved work needs release readiness or deployment setup.
-tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

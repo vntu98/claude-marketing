@@ -1,7 +1,7 @@
 ---
 name: technical-brainstormer
 description: Evaluate technical options, trade-offs, and architecture decisions before the implementation plan is locked. Use proactively when there are meaningful technical options or build-vs-buy trade-offs.
-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: opus
 skills:

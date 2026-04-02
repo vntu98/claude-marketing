@@ -1,7 +1,7 @@
 ---
 name: codebase-scout
 description: Map the codebase, entry points, dependencies, conventions, and risk areas before planning or implementation. Use proactively when the change surface or dependency risks are not yet mapped.
-tools: Read, Glob, Grep, Bash, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Bash, Write, Edit, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: haiku
 memory: project

@@ -1,7 +1,7 @@
 ---
 name: seo-specialist
 description: Audit crawlability, indexation, site architecture, on-page SEO, and content discoverability before organic growth work ships. Use proactively when discoverability or IA issues are in scope.
-tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Bash, WebSearch, WebFetch, Write, Edit, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: sonnet
 skills:

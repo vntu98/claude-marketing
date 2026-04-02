@@ -10,6 +10,11 @@ const { spawnSync } = require('node:child_process');
 
 const projectRoot = path.resolve(__dirname, '..', '..');
 const { validateProject } = require('../scripts/validate-workflow.cjs');
+const {
+  readApprovalState,
+  readStrategyState,
+  summarizeTeamTasks
+} = require('../hooks/workflow-utils.cjs');
 
 function runHook(relativePath, payload, cwd, extraEnv = {}) {
   const result = spawnSync(
@@ -62,6 +67,11 @@ function writeActiveStrategy(tmpDir, relativeMemoPath) {
       updatedAt: '2026-03-31T00:00:00.000Z'
     }, null, 2)}\n`
   );
+}
+
+function setFileTimestamp(filePath, isoString) {
+  const timestamp = new Date(isoString);
+  fs.utimesSync(filePath, timestamp, timestamp);
 }
 
 function writeTeamRuntimeState(tmpDir, state) {
@@ -448,6 +458,67 @@ test('active strategy sync records the latest strategy-memo.md path', () => {
   assert.equal(activeStrategyState.memoPath, 'reports/strategy/launch-angle/strategy-memo.md');
 });
 
+test('approval state falls back to the latest plan.md when active plan state is missing', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const olderPlanDir = path.join(tmpDir, 'plans', 'older-plan');
+  const latestPlanDir = path.join(tmpDir, 'plans', 'latest-plan');
+
+  fs.mkdirSync(olderPlanDir, { recursive: true });
+  fs.mkdirSync(latestPlanDir, { recursive: true });
+  fs.writeFileSync(path.join(olderPlanDir, 'plan.md'), '# Plan\n\nApproval Status: approved\n');
+  fs.writeFileSync(path.join(latestPlanDir, 'plan.md'), '# Plan\n\nApproval Status: pending\n');
+  writePlanRuntimeArtifacts(olderPlanDir);
+  writePlanRuntimeArtifacts(latestPlanDir);
+  setFileTimestamp(path.join(olderPlanDir, 'plan.md'), '2026-04-01T08:00:00.000Z');
+  setFileTimestamp(path.join(latestPlanDir, 'plan.md'), '2026-04-01T09:00:00.000Z');
+
+  const approval = readApprovalState(tmpDir);
+
+  assert.equal(approval.resolution, 'latest');
+  assert.equal(approval.activePlan, path.join(latestPlanDir, 'plan.md'));
+  assert.equal(approval.pendingPlan, path.join(latestPlanDir, 'plan.md'));
+  assert.equal(approval.approvedPlan, null);
+});
+
+test('strategy state falls back to the latest strategy memo when active strategy state is missing', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
+  const olderMemoDir = path.join(tmpDir, 'reports', 'strategy', '20260401-older');
+  const latestMemoDir = path.join(tmpDir, 'reports', 'strategy', '20260401-latest');
+
+  fs.mkdirSync(olderMemoDir, { recursive: true });
+  fs.mkdirSync(latestMemoDir, { recursive: true });
+
+  const strategyMemo = [
+    '## Target Audience',
+    'placeholder',
+    '## Positioning',
+    'placeholder',
+    '## Channel Priorities',
+    'placeholder',
+    '## Priority Experiments',
+    'placeholder',
+    '## Measurement Notes',
+    'placeholder',
+    '## Concrete Dev Asks',
+    'placeholder',
+    '## PM Intake Packet',
+    'placeholder',
+    '## Role Handoffs',
+    'placeholder'
+  ].join('\n');
+
+  fs.writeFileSync(path.join(olderMemoDir, 'strategy-memo.md'), strategyMemo);
+  fs.writeFileSync(path.join(latestMemoDir, 'strategy-memo.md'), strategyMemo);
+  setFileTimestamp(path.join(olderMemoDir, 'strategy-memo.md'), '2026-04-01T08:00:00.000Z');
+  setFileTimestamp(path.join(latestMemoDir, 'strategy-memo.md'), '2026-04-01T09:00:00.000Z');
+
+  const strategy = readStrategyState(tmpDir);
+
+  assert.equal(strategy.resolution, 'latest');
+  assert.equal(strategy.memoPath, path.join(latestMemoDir, 'strategy-memo.md'));
+  assert.equal(strategy.ready, true);
+});
+
 test('plan approval gate uses the active plan instead of an unrelated approved plan', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-workflow-'));
   const oldPlanDir = path.join(tmpDir, 'plans', 'old-release');
@@ -508,28 +579,28 @@ test('session state persists a workflow snapshot on Stop and replays it on start
     [
       '# Strategy Memo',
       '',
-      '## Đối Tượng Ưu Tiên (Target Audience)',
+      '## Target Audience',
       '- Learners',
       '',
-      '## Định Vị (Positioning)',
+      '## Positioning',
       '- Fast bilingual subtitle learning',
       '',
-      '## Ưu Tiên Kênh (Channel Priorities)',
+      '## Channel Priorities',
       '- Search',
       '',
-      '## Thí Nghiệm Ưu Tiên (Priority Experiments)',
+      '## Priority Experiments',
       '- Test landing page',
       '',
-      '## Ghi Chú Đo Lường (Measurement Notes)',
+      '## Measurement Notes',
       '- Track activation',
       '',
-      '## Yêu Cầu Cho Dev (Concrete Dev Asks)',
+      '## Concrete Dev Asks',
       '- Instrument subtitle tap',
       '',
-      '## Gói Bàn Giao PM (PM Intake Packet)',
+      '## PM Intake Packet',
       '- Scope MVP flow',
       '',
-      '## Bàn Giao Vai Trò (Role Handoffs)',
+      '## Role Handoffs',
       '- project-manager next',
       ''
     ].join('\n')
@@ -595,28 +666,28 @@ test('workflow reminder allows /eup-pm when strategy memo is ready', () => {
     [
       '# Strategy Memo',
       '',
-      '## Đối Tượng Ưu Tiên (Target Audience)',
+      '## Target Audience',
       '- Learners',
       '',
-      '## Định Vị (Positioning)',
+      '## Positioning',
       '- Fast bilingual subtitle learning',
       '',
-      '## Ưu Tiên Kênh (Channel Priorities)',
+      '## Channel Priorities',
       '- Search',
       '',
-      '## Thí Nghiệm Ưu Tiên (Priority Experiments)',
+      '## Priority Experiments',
       '- Test landing page',
       '',
-      '## Ghi Chú Đo Lường (Measurement Notes)',
+      '## Measurement Notes',
       '- Track activation',
       '',
-      '## Yêu Cầu Cho Dev (Concrete Dev Asks)',
+      '## Concrete Dev Asks',
       '- Instrument subtitle tap',
       '',
-      '## Gói Bàn Giao PM (PM Intake Packet)',
+      '## PM Intake Packet',
       '- Scope MVP flow',
       '',
-      '## Bàn Giao Vai Trò (Role Handoffs)',
+      '## Role Handoffs',
       '- project-manager next',
       ''
     ].join('\n')
@@ -779,6 +850,45 @@ test('task created hook allows valid implementation task packets and records run
   assert.equal(hook.status, 0);
   assert.equal(runtimeState.activeTeam, 'implementation');
   assert.equal(runtimeState.lastTaskCreated.ownerRole, 'backend-engineer');
+});
+
+test('team task summary respects assignee and metadata owners and counts claimed tasks as in progress', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-team-summary-'));
+  const previousHome = process.env.HOME;
+  process.env.HOME = tmpDir;
+
+  try {
+    writeTeamTask(tmpDir, 'alpha-team', {
+      id: 'task-claimed',
+      subject: 'Claimed by teammate',
+      status: 'claimed',
+      assignee: 'worker-a',
+      dependencies: []
+    });
+    writeTeamTask(tmpDir, 'alpha-team', {
+      id: 'task-owned-metadata',
+      subject: 'Owned through metadata',
+      status: 'pending',
+      dependencies: [],
+      metadata: {
+        owner: 'worker-b'
+      }
+    });
+    writeTeamTask(tmpDir, 'alpha-team', {
+      id: 'task-blocked',
+      subject: 'Blocked follow-up',
+      status: 'pending',
+      dependencies: ['task-claimed']
+    });
+
+    const summary = summarizeTeamTasks('alpha-team');
+
+    assert.equal(summary.inProgress, 1);
+    assert.equal(summary.pending, 2);
+    assert.deepEqual(summary.unblocked, []);
+  } finally {
+    process.env.HOME = previousHome;
+  }
 });
 
 test('marketing strategist cannot edit product source even with an approved plan', () => {
@@ -1197,6 +1307,23 @@ test('implementation-capable agents declare worktree isolation', () => {
   }
 });
 
+test('project teammate agents can update tasks but cannot create new team tasks', () => {
+  for (const file of listAgentFiles()) {
+    const content = fs.readFileSync(
+      path.join(projectRoot, '.claude', 'agents', file),
+      'utf8'
+    );
+    const toolsLine = content.match(/^tools:\s*(.+)$/m);
+
+    assert.ok(toolsLine, `missing tools line in ${file}`);
+    assert.match(toolsLine[1], /\bTaskGet\b/, `${file} must allow TaskGet`);
+    assert.match(toolsLine[1], /\bTaskUpdate\b/, `${file} must allow TaskUpdate`);
+    assert.match(toolsLine[1], /\bTaskList\b/, `${file} must allow TaskList`);
+    assert.match(toolsLine[1], /\bSendMessage\b/, `${file} must allow SendMessage`);
+    assert.doesNotMatch(toolsLine[1], /\bTaskCreate\b/, `${file} must not allow TaskCreate`);
+  }
+});
+
 test('manual company orchestration skills exist and are manual-only', () => {
   const manualSkills = [
     '.claude/skills/eup-market-cycle/SKILL.md',
@@ -1260,6 +1387,20 @@ test('eup-implement enforces lead-owned team lifecycle and rich task context', (
   assert.match(implementSkill, /Wait for teammates to complete their tasks before the lead synthesizes/i);
   assert.match(implementSkill, /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i);
   assert.match(implementSkill, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
+});
+
+test('eup-implement documents explicit quality-review and qa task packet templates', () => {
+  const implementSkill = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-implement', 'SKILL.md'),
+    'utf8'
+  );
+
+  assert.match(implementSkill, /For `quality-reviewer` lanes, require an explicit read scope:/);
+  assert.match(implementSkill, /Owner Role: quality-reviewer/);
+  assert.match(implementSkill, /Read Scope:/);
+  assert.match(implementSkill, /For `qa-tester` lanes, require explicit validation scope plus test-only ownership when edits are allowed:/);
+  assert.match(implementSkill, /Owner Role: qa-tester/);
+  assert.match(implementSkill, /Isolation: worktree/);
 });
 
 test('eup-research defaults to saving a full research package for direct command usage', () => {
@@ -1533,28 +1674,28 @@ test('statusline renders active team, task progress, and plan state', () => {
     [
       '# Strategy Memo',
       '',
-      '## Đối Tượng Ưu Tiên (Target Audience)',
+      '## Target Audience',
       '- Learners',
       '',
-      '## Định Vị (Positioning)',
+      '## Positioning',
       '- Value',
       '',
-      '## Ưu Tiên Kênh (Channel Priorities)',
+      '## Channel Priorities',
       '- Search',
       '',
-      '## Thí Nghiệm Ưu Tiên (Priority Experiments)',
+      '## Priority Experiments',
       '- Landing page test',
       '',
-      '## Ghi Chú Đo Lường (Measurement Notes)',
+      '## Measurement Notes',
       '- KPI notes',
       '',
-      '## Yêu Cầu Cho Dev (Concrete Dev Asks)',
+      '## Concrete Dev Asks',
       '- Build flow',
       '',
-      '## Gói Bàn Giao PM (PM Intake Packet)',
+      '## PM Intake Packet',
       '- Scope MVP',
       '',
-      '## Bàn Giao Vai Trò (Role Handoffs)',
+      '## Role Handoffs',
       '- PM next',
       ''
     ].join('\n')
@@ -1775,28 +1916,28 @@ test('workflow e2e smoke: research -> strategy -> plan -> approval -> implementa
     [
       '# Strategy Memo',
       '',
-      '## Đối Tượng Ưu Tiên (Target Audience)',
+      '## Target Audience',
       '- Intermediate video-first learners',
       '',
-      '## Định Vị (Positioning)',
+      '## Positioning',
       '- Learn from real videos with instant bilingual support',
       '',
-      '## Ưu Tiên Kênh (Channel Priorities)',
+      '## Channel Priorities',
       '- Search + creator demos',
       '',
-      '## Thí Nghiệm Ưu Tiên (Priority Experiments)',
+      '## Priority Experiments',
       '- Test dual-subtitle landing page',
       '',
-      '## Ghi Chú Đo Lường (Measurement Notes)',
+      '## Measurement Notes',
       '- Track subtitle tap, save word, review return',
       '',
-      '## Yêu Cầu Cho Dev (Concrete Dev Asks)',
+      '## Concrete Dev Asks',
       '- MVP player with bilingual subtitle controls',
       '',
-      '## Gói Bàn Giao PM (PM Intake Packet)',
+      '## PM Intake Packet',
       '- Scope the MVP viewing and review loop',
       '',
-      '## Bàn Giao Vai Trò (Role Handoffs)',
+      '## Role Handoffs',
       '- project-manager receives next',
       ''
     ].join('\n')

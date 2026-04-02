@@ -1,7 +1,7 @@
 ---
 name: implementation-planner
 description: Write the approved implementation plan, phases, tests, rollback steps, and exact file ownership before engineers start coding. Use proactively when work needs an approval-gated implementation plan.
-tools: Read, Glob, Grep, Write, Edit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage
+tools: Read, Glob, Grep, Write, Edit, Bash, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: opus
 skills:
