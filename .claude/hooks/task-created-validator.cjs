@@ -58,6 +58,11 @@ function parseOwnerRole(description) {
   return match ? match[2].trim().toLowerCase() : '';
 }
 
+function parsePhase(description) {
+  const match = String(description || '').match(/(^|\n)Phase:\s*([a-z0-9-]+)/i);
+  return match ? match[2].trim().toLowerCase() : '';
+}
+
 function missingGeneralSections(description) {
   return GENERAL_REQUIRED
     .filter(([, pattern]) => !pattern.test(description))
@@ -87,6 +92,24 @@ function missingRoleSpecificSections(ownerRole, description) {
     : ['Artifacts:'];
 }
 
+function missingPhaseSpecificSections(phase, description) {
+  if (phase !== 'debate') {
+    return [];
+  }
+
+  const missing = [];
+
+  if (!/(^|\n)Option Set:\s*[\s\S]*\S/i.test(description)) {
+    missing.push('Option Set:');
+  }
+
+  if (!/(^|\n)Decision Criteria:\s*[\s\S]*\S/i.test(description)) {
+    missing.push('Decision Criteria:');
+  }
+
+  return missing;
+}
+
 try {
   const payload = readHookStdin();
   const projectRoot = process.env.CLAUDE_PROJECT_DIR || process.cwd();
@@ -112,6 +135,7 @@ try {
   }
 
   const ownerRole = parseOwnerRole(description);
+  const phase = parsePhase(description);
   if (ownerRole && !VALID_OWNER_ROLES.has(ownerRole)) {
     process.stderr.write(
       `Task "${subject}" declares unknown Owner Role: ${ownerRole}. Use one of the project agent names exactly.\n`
@@ -121,7 +145,8 @@ try {
 
   const missing = [
     ...missingGeneralSections(description),
-    ...missingRoleSpecificSections(ownerRole, description)
+    ...missingRoleSpecificSections(ownerRole, description),
+    ...missingPhaseSpecificSections(phase, description)
   ];
 
   if (missing.length) {

@@ -780,6 +780,39 @@ test('task created hook blocks incomplete team task packets', () => {
   assert.match(hook.stderr, /missing required task packet fields/i);
 });
 
+test('task created hook blocks debate packets missing option set and decision criteria', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-task-created-debate-'));
+
+  const hook = runHook(
+    '.claude/hooks/task-created-validator.cjs',
+    {
+      hook_event_name: 'TaskCreated',
+      team_name: 'debate-team',
+      task_id: 'task-debate-01',
+      task_subject: 'Write marketing thesis',
+      task_description: [
+        'Phase: debate',
+        'Owner Role: marketing-strategist',
+        'Depends On: task-debate-brief',
+        'Context:',
+        '- Debate question: choose the next growth motion',
+        '- Lane objective: argue the strongest commercial case',
+        'Artifacts:',
+        '- reports/strategy/20260402-demo/marketing-thesis.md',
+        'Acceptance Criteria:',
+        '- thesis is explicit',
+        'Validation:',
+        '- confirm artifact exists'
+      ].join('\n')
+    },
+    tmpDir
+  );
+
+  assert.equal(hook.status, 2);
+  assert.match(hook.stderr, /Option Set:/);
+  assert.match(hook.stderr, /Decision Criteria:/);
+});
+
 test('task created hook blocks unknown owner roles', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-task-created-owner-'));
 
@@ -1363,6 +1396,9 @@ test('market-cycle, debate, and dev-intake require team cleanup before creating 
   assert.match(debateSkill, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
   assert.match(debateSkill, /marketing-rebuttal\.md/i);
   assert.match(debateSkill, /dev-rebuttal\.md/i);
+  assert.match(debateSkill, /no-action or defer baseline/i);
+  assert.match(debateSkill, /concede at least one valid criticism/i);
+  assert.match(debateSkill, /exact option set with 2-3 materially different options/i);
   assert.match(debateSkill, /Do not open a debate for routine work/i);
 
   assert.match(devIntake, /Before `TeamCreate`, check whether this lead session is already managing another team/i);

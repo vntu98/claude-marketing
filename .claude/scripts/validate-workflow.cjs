@@ -332,6 +332,13 @@ function validateProject(projectRoot) {
     'eup-market-cycle': [
       /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i
     ],
+    'eup-debate': [
+      /exact option set with 2-3 materially different options/i,
+      /no-action or defer baseline/i,
+      /weighted decision criteria/i,
+      /concede at least one valid criticism/i,
+      /If no option clearly beats the strongest alternative and the no-action baseline/i
+    ],
     'eup-dev-intake': [
       /shut down idle teammates and delete the dev-intake team with `TeamDelete` from the lead session/i
     ],

@@ -15,6 +15,8 @@ Run this command inline as the team lead. This is an Agent Teams-first debate wo
 
 Take one problem, strategy memo, or initiative and force the company to argue from both marketing and technical angles before locking the next move.
 
+Debate is only successful if it produces a bounded decision among explicitly named options. Generic discussion, fuzzy "pros and cons", or everyone converging on the same vague answer is a failed debate.
+
 Use this after marketing research is done and a strategy memo already exists, or when the user has a concrete task that should be debated before PM intake or planning.
 
 Use debate only when at least one of these is true:
@@ -50,9 +52,13 @@ If a strategy memo exists, read it first and treat it as the source of truth for
 4. If `TeamCreate` fails or is unavailable, stop and tell the user Agent Teams requires Claude Code CLI with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`.
 5. Keep the debate team to 3-5 teammates.
 6. Debate output must be durable and saved under the strategy folder so later PM/planning work can consume it.
-7. The lead moderates rounds, tracks progress, and enforces that rebuttals read the opposing artifacts before responding.
-8. After `debate-memo.md` is saved and all tasks are complete, shut down idle teammates and delete the team with `TeamDelete`.
-9. Only report `team disbanded`, `team fully disbanded`, or equivalent language after `TeamDelete` returns success.
+7. Before thesis tasks start, the moderator must lock a bounded option set with 2-3 materially different options. Include a no-action or defer baseline when that is a realistic alternative.
+8. Every round must attack a specific option, cite saved artifacts or file paths, and name what evidence would weaken or kill that option.
+9. The lead moderates rounds, tracks progress, and enforces that rebuttals read the opposing artifacts before responding.
+10. Rebuttals must concede at least one valid opposing point and either narrow scope, add a condition, or change the recommendation.
+11. If no option clearly beats the strongest alternative and the no-action baseline, the final outcome must be "do not lock the decision yet."
+12. After `debate-memo.md` is saved and all tasks are complete, shut down idle teammates and delete the team with `TeamDelete`.
+13. Only report `team disbanded`, `team fully disbanded`, or equivalent language after `TeamDelete` returns success.
 
 ## Debate Team Design
 
@@ -110,6 +116,16 @@ For artifact-writing lanes such as `marketing-strategist`, `growth-manager`, `se
 Phase: debate
 Owner Role: marketing-strategist
 Depends On: task-debate-brief
+Option Set:
+- Option A: creator-led growth
+- Option B: SEO-first acquisition
+- Option C: defer and keep the current motion
+Decision Criteria:
+- expected impact
+- confidence
+- speed to learn
+- implementation cost
+- reversibility
 Context:
 - Debate question: choose between creator-led growth and SEO-first acquisition for this initiative
 - Lane objective: argue the strongest commercial case for the assigned direction
@@ -130,6 +146,16 @@ For read-heavy lanes such as `technical-brainstormer` or `quality-reviewer`, inc
 Phase: debate
 Owner Role: technical-brainstormer
 Depends On: task-debate-brief
+Option Set:
+- Option A: creator-led growth
+- Option B: SEO-first acquisition
+- Option C: defer and keep the current motion
+Decision Criteria:
+- expected impact
+- confidence
+- speed to learn
+- implementation cost
+- reversibility
 Context:
 - Debate question: choose the technical direction that best supports the commercial goal with acceptable risk
 - Lane objective: argue the strongest technical case and explicitly name delivery trade-offs
@@ -158,7 +184,12 @@ The lead or `implementation-planner` writes `debate-brief.md` with:
 - debate question
 - source strategy memo path
 - decision that must be made
+- exact option set with 2-3 materially different options
+- no-action or defer baseline when realistic
 - constraints
+- weighted decision criteria
+- kill criteria or invalidation triggers for each option
+- evidence gaps that matter before locking the decision
 - what counts as winning
 
 The brief should also name the exact option set being debated. If the options are fuzzy, stop and tighten the question before spawning the team.
@@ -174,6 +205,9 @@ Each thesis must state:
 - why it wins
 - assumptions
 - trade-offs
+- strongest alternative
+- why the no-action baseline loses or wins
+- what evidence would make this thesis wrong
 - what the other side is likely to underestimate
 
 ### Round 2: Challenge
@@ -188,6 +222,8 @@ Each challenge must attack:
 - execution complexity
 - hidden costs
 - easier alternatives
+- the no-action or defer baseline if the thesis ignores it
+- what would have to be true for the thesis to be rejected now
 
 ### Round 3: Rebuttal
 
@@ -195,6 +231,13 @@ Each challenge must attack:
 - `technical-brainstormer` reads `marketing-thesis.md`, `marketing-challenge.md`, and `dev-challenge.md`, then writes `dev-rebuttal.md`
 
 Use direct `SendMessage` between the challenged thesis owner and the relevant challenge owner when clarification is needed. Avoid `broadcast` unless the moderator is announcing a round change or a shared blocker.
+
+Each rebuttal must:
+
+- concede at least one valid criticism
+- update or narrow the recommendation if the criticism lands
+- explain why the thesis still beats the strongest alternative
+- name the kill criteria that remain unresolved
 
 ### Round 4: Decision
 
@@ -206,9 +249,12 @@ The final memo must include:
 
 - the winning recommendation
 - the strongest rejected alternative
+- the no-action or defer baseline
 - why the winner beats the alternative now
 - what assumptions must be true
 - what metrics or evidence would invalidate the decision
+- what would make the team reopen the decision
+- whether the company should decide now, defer, or gather more evidence first
 - whether the next handoff is:
   - `/eup-dev-intake`
   - `/eup-plan`
@@ -223,6 +269,8 @@ The memo should include a short decision matrix comparing the winner and the str
 - implementation cost
 - reversibility
 - operational risk
+
+If the score is effectively tied, the memo must explicitly say the decision is not yet locked and route the work to further research, updated strategy work, or a tighter scoped experiment.
 
 If the debate materially changes technical scope, the memo must explicitly say PM and planning should consume it before reusing the previous plan.
 
@@ -243,5 +291,8 @@ Every debate task should carry metadata when useful:
 - Do not let the same person write both the thesis and the challenge against that same thesis.
 - Do not synthesize before challenge and rebuttal rounds are complete.
 - Do not reduce debate to generic pros/cons.
+- Do not debate undefined options or let everyone argue for the same answer.
+- Do not ignore the no-action or defer baseline when it is a realistic alternative.
+- Do not make unsupported claims sound decisive; weak evidence should reduce confidence, not magically win the debate.
 - Do not skip durable artifacts; later workflow steps must be able to read the debate output.
 - Do not open a debate for routine work just to make the process feel sophisticated.
