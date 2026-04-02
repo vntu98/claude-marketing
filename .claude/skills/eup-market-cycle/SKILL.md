@@ -24,6 +24,9 @@ Turn a market brief into durable evidence under `reports/research/YYYYMMDD-[slug
 5. Keep the first wave to 3-5 teammates.
 6. All live-mutation marketing tools must run in `--dry-run` mode unless the user explicitly asks for a live action.
 7. The lead coordinates, monitors task progress, and synthesizes. Teammates own the artifacts they create.
+8. Default the market-research lane to one primary learner segment and one primary geography cluster. Do not widen it into a global scan unless the user explicitly asks or the decision truly depends on cross-market comparison.
+9. For first-pass strategy work, treat 15-25 high-signal quotes across at least 5 independent sources as enough evidence. Require the lane to record gaps instead of chasing exhaustive coverage.
+10. If the customer-research lane still spans multiple segments, surfaces, or geographies after scoping, narrow it before spawning the team or split it into smaller independent tasks.
 
 ## Default Team
 
@@ -97,6 +100,8 @@ Use the optional metadata above when the lead must block `TaskCompleted` or `Tea
 3. Create the new team.
 4. Create evidence tasks:
    - market and customer language research
+     - default to one primary segment and one primary geography cluster
+     - require `sources.md` and `quote-bank.md` to be saved before final synthesis so the lane can checkpoint real progress
    - competitor landscape and switching triggers
    - GA4 / channel analysis using `tools/ga4.js`, `tools/google-search-console.js`, `tools/semrush.js`, or ads tools when credentials exist
    - optional SEO or growth support lane

@@ -34,6 +34,8 @@ The `/eup-research` command itself is authorization to create the report package
 5. If the brief mentions competitors, alternatives, positioning, market scans, or switching behavior, `competitor-landscape.md` is mandatory.
 6. If the user asks for extra outputs such as personas, JTBD maps, or a one-page synthesis, create them in addition to the baseline report package, not instead of it.
 7. If the report folder does not exist yet, create it yourself with `mkdir -p` before attempting file writes.
+8. Default to depth over breadth: one primary segment and one primary geography cluster is usually enough unless the user explicitly asks for a cross-market comparison.
+9. For first-pass strategy work, 15-25 high-signal quotes across at least 5 independent sources is usually enough. Record the gaps instead of browsing endlessly for completeness.
 
 ## Direct Command Task
 
@@ -45,7 +47,8 @@ When this skill is invoked as `/eup-research $ARGUMENTS`, execute the workflow i
 4. Gather evidence from the most relevant sources.
 5. Write the report package files under that folder.
 6. If competitors or alternatives are in scope, write `competitor-landscape.md` too.
-7. Finish with a concise summary that includes the saved folder path.
+7. Stop once evidence quality is strong enough for strategy use; do not keep expanding the sample only to sound exhaustive.
+8. Finish with a concise summary that includes the saved folder path.
 
 This skill is an execution workflow, not just reference guidance. When invoked directly, act on the brief and write the files.
 

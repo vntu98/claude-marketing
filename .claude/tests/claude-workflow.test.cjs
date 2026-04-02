@@ -1390,6 +1390,8 @@ test('market-cycle, debate, and dev-intake require team cleanup before creating 
   assert.match(marketCycle, /call `TeamDelete` on the old team first/i);
   assert.match(marketCycle, /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i);
   assert.match(marketCycle, /Only report `team disbanded`.*after `TeamDelete` returns success/i);
+  assert.match(marketCycle, /one primary learner segment and one primary geography cluster/i);
+  assert.match(marketCycle, /15-25 high-signal quotes across at least 5 independent sources/i);
 
   assert.match(debateSkill, /Before `TeamCreate`, check whether this lead session is already managing another team/i);
   assert.match(debateSkill, /call `TeamDelete` on the old team first/i);
@@ -1408,6 +1410,25 @@ test('market-cycle, debate, and dev-intake require team cleanup before creating 
   assert.match(devIntake, /scout-findings\.md/i);
   assert.match(devIntake, /technical-options\.md/i);
   assert.match(devIntake, /call `TaskUpdate` so their assigned tasks are marked completed/i);
+});
+
+test('market researcher and research skill constrain breadth and define a good-enough evidence threshold', () => {
+  const marketResearcher = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'agents', 'market-researcher.md'),
+    'utf8'
+  );
+  const researchSkill = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-research', 'SKILL.md'),
+    'utf8'
+  );
+
+  assert.match(marketResearcher, /one highest-value learner segment and one primary geography cluster/i);
+  assert.match(marketResearcher, /15-25 high-signal quotes across at least 5 independent sources/i);
+  assert.match(marketResearcher, /Save `sources\.md` and `quote-bank\.md` early/i);
+
+  assert.match(researchSkill, /one primary segment and one primary geography cluster/i);
+  assert.match(researchSkill, /15-25 high-signal quotes across at least 5 independent sources/i);
+  assert.match(researchSkill, /Stop once evidence quality is strong enough for strategy use/i);
 });
 
 test('eup-implement enforces lead-owned team lifecycle and rich task context', () => {

@@ -330,7 +330,9 @@ function validateProject(projectRoot) {
 
   const orchestrationSkillChecks = {
     'eup-market-cycle': [
-      /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i
+      /shut down idle teammates and delete the team with `TeamDelete` from the lead session/i,
+      /one primary learner segment and one primary geography cluster/i,
+      /15-25 high-signal quotes across at least 5 independent sources/i
     ],
     'eup-debate': [
       /exact option set with 2-3 materially different options/i,
@@ -543,7 +545,9 @@ function validateProject(projectRoot) {
       /Weaknesses/i,
       /SWOT/i,
       /competitor-landscape\.md/i,
-      /reports\/research\//i
+      /reports\/research\//i,
+      /one primary segment and one primary geography cluster/i,
+      /15-25 high-signal quotes across at least 5 independent sources/i
     ];
     for (const pattern of requiredResearchPatterns) {
       if (!pattern.test(researchContent)) {
@@ -566,6 +570,17 @@ function validateProject(projectRoot) {
     const tools = marketResearcher.frontmatter.tools || [];
     if (!Array.isArray(tools) || !tools.includes('Write') || !tools.includes('Edit')) {
       errors.push('market-researcher must allow Write and Edit for reports/** output');
+    }
+
+    const marketResearcherContent = readFile(marketResearcher.filePath);
+    for (const pattern of [
+      /one highest-value learner segment and one primary geography cluster/i,
+      /15-25 high-signal quotes across at least 5 independent sources/i,
+      /Save `sources\.md` and `quote-bank\.md` early/i
+    ]) {
+      if (!pattern.test(marketResearcherContent)) {
+        errors.push(`market-researcher is missing scope or saturation guidance matching ${pattern}`);
+      }
     }
   }
 
