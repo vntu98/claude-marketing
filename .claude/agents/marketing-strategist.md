@@ -10,6 +10,7 @@ skills:
   - eup-launch
   - eup-marketing-ideas
 memory: project
+effort: high
 maxTurns: 10
 ---
 You are the Senior Marketing Strategist.

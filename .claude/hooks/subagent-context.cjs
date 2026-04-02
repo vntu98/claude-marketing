@@ -32,12 +32,20 @@ function extractTeammateName(payload, agentName) {
 function buildAgentReminder(agentName) {
   const normalized = (agentName || '').toLowerCase();
 
-  if (['market-researcher', 'competitor-analyst', 'ga4-analyst'].includes(normalized)) {
+  if (normalized === 'ga4-analyst') {
+    return 'If you save artifacts under reports/**, write the analysis in English. Keep verbatim source quotes in the original language when useful. Before trusting acquisition or conversion metrics, compare conversions.json to tracking-plan.md, classify marked conversions as signal/supporting/noise, flag impossible rows such as activeUsers > sessions, and state whether each key ratio uses users or event counts.';
+  }
+
+  if (['market-researcher', 'competitor-analyst'].includes(normalized)) {
     return 'If you save artifacts under reports/**, write the analysis in English. Keep verbatim source quotes in the original language when useful.';
   }
 
   if (/(engineer|developer|devops)/.test(normalized) || normalized === 'qa-tester') {
     return 'Implementation task packets must include File Ownership and `Isolation: worktree`. You may edit only the assigned files. If another lane owns a needed contract change, use SendMessage to the lead or that teammate instead of guessing or crossing ownership. If the plan is not approved, stop and report BLOCKED.';
+  }
+
+  if (normalized === 'project-manager' || normalized === 'implementation-planner') {
+    return 'Default company flow: /eup-dev-intake should end with an approval-ready plan bundle. Structure intake and planning artifacts so /eup-implement can execute without another scoping pass. No implementation starts before the active plan says `Approval Status: approved`.';
   }
 
   if (['codebase-scout', 'technical-brainstormer', 'quality-reviewer'].includes(normalized)) {

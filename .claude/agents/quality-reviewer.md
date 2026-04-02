@@ -7,6 +7,7 @@ model: sonnet
 skills:
   - eup-review
 memory: project
+effort: high
 maxTurns: 8
 ---
 You are the Senior Quality Reviewer.

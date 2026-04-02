@@ -78,7 +78,7 @@ Use these rules every time:
 
 1. If the codebase or change surface is not already mapped, route to `/eup-scout` first.
 2. If architecture, integration, or vendor choice is unclear, route to `/eup-brainstorm`.
-3. Before any implementation, route to `/eup-plan` to write `plans/<slug>/plan.md`.
+3. Before any implementation, route to `/eup-dev-intake` as the default combined PM-plus-planning flow, or use `/eup-plan` only when a standalone planner pass is the right fit, to write `plans/<slug>/plan.md`.
 4. No product-code implementation before a plan contains `Approval Status: approved`.
 5. After approval, this controller orchestrates engineers directly and may batch them only when file ownership does not overlap.
 6. `quality-reviewer` runs before `qa-tester`.

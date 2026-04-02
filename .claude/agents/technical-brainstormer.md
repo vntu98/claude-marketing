@@ -7,6 +7,7 @@ model: opus
 skills:
   - eup-brainstorm
 memory: project
+effort: high
 maxTurns: 8
 ---
 You are the Senior Technical Brainstormer.

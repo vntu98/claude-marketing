@@ -1,0 +1,313 @@
+{
+  "dimensionHeaders": [
+    {
+      "name": "sessionSource"
+    },
+    {
+      "name": "sessionMedium"
+    },
+    {
+      "name": "sessionCampaignName"
+    }
+  ],
+  "metricHeaders": [
+    {
+      "name": "sessions",
+      "type": "TYPE_INTEGER"
+    },
+    {
+      "name": "activeUsers",
+      "type": "TYPE_INTEGER"
+    },
+    {
+      "name": "newUsers",
+      "type": "TYPE_INTEGER"
+    },
+    {
+      "name": "conversions",
+      "type": "TYPE_FLOAT"
+    },
+    {
+      "name": "engagementRate",
+      "type": "TYPE_FLOAT"
+    }
+  ],
+  "rows": [
+    {
+      "dimensionValues": [
+        {
+          "value": "(direct)"
+        },
+        {
+          "value": "(none)"
+        },
+        {
+          "value": "(direct)"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "3759"
+        },
+        {
+          "value": "1207"
+        },
+        {
+          "value": "1096"
+        },
+        {
+          "value": "5547"
+        },
+        {
+          "value": "0.833732375631817"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "google"
+        },
+        {
+          "value": "cpc"
+        },
+        {
+          "value": "VN_4U_AND_Phuongttt_20.03"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "2452"
+        },
+        {
+          "value": "1159"
+        },
+        {
+          "value": "1132"
+        },
+        {
+          "value": "5547"
+        },
+        {
+          "value": "0.84828711256117451"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "google-play"
+        },
+        {
+          "value": "organic"
+        },
+        {
+          "value": "(not set)"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "771"
+        },
+        {
+          "value": "240"
+        },
+        {
+          "value": "211"
+        },
+        {
+          "value": "791"
+        },
+        {
+          "value": "0.78599221789883267"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "(not set)"
+        },
+        {
+          "value": "(not set)"
+        },
+        {
+          "value": "(not set)"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "153"
+        },
+        {
+          "value": "1160"
+        },
+        {
+          "value": "111"
+        },
+        {
+          "value": "219"
+        },
+        {
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "google"
+        },
+        {
+          "value": "cpc"
+        },
+        {
+          "value": "VN_4U_IOS_Phuongttt_30.03"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "80"
+        },
+        {
+          "value": "41"
+        },
+        {
+          "value": "37"
+        },
+        {
+          "value": "246"
+        },
+        {
+          "value": "0.8"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "google-play"
+        },
+        {
+          "value": "organic"
+        },
+        {
+          "value": "(direct)"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "60"
+        },
+        {
+          "value": "31"
+        },
+        {
+          "value": "0"
+        },
+        {
+          "value": "18"
+        },
+        {
+          "value": "0.8666666666666667"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "google"
+        },
+        {
+          "value": "organic"
+        },
+        {
+          "value": "(not set)"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "21"
+        },
+        {
+          "value": "4"
+        },
+        {
+          "value": "2"
+        },
+        {
+          "value": "16"
+        },
+        {
+          "value": "0.80952380952380953"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "google"
+        },
+        {
+          "value": "cpc"
+        },
+        {
+          "value": "(not set)"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "3"
+        },
+        {
+          "value": "1"
+        },
+        {
+          "value": "1"
+        },
+        {
+          "value": "4"
+        },
+        {
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "google"
+        },
+        {
+          "value": "organic"
+        },
+        {
+          "value": "(direct)"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "2"
+        },
+        {
+          "value": "1"
+        },
+        {
+          "value": "0"
+        },
+        {
+          "value": "0"
+        },
+        {
+          "value": "1"
+        }
+      ]
+    }
+  ],
+  "rowCount": 9,
+  "metadata": {
+    "currencyCode": "USD",
+    "timeZone": "Etc/GMT-7"
+  },
+  "kind": "analyticsData#runReport"
+}

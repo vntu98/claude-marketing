@@ -1,0 +1,393 @@
+{
+  "property": "517672135",
+  "startDate": "30daysAgo",
+  "endDate": "today",
+  "presets": [
+    {
+      "preset": "watch-core-actions",
+      "ok": true,
+      "result": {
+        "dimensionHeaders": [
+          {
+            "name": "eventName"
+          }
+        ],
+        "metricHeaders": [
+          {
+            "name": "eventCount",
+            "type": "TYPE_INTEGER"
+          },
+          {
+            "name": "totalUsers",
+            "type": "TYPE_INTEGER"
+          }
+        ],
+        "rows": [
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_word_define"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "91330"
+              },
+              {
+                "value": "824"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_watch"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "9995"
+              },
+              {
+                "value": "1719"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_word_save"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "1186"
+              },
+              {
+                "value": "134"
+              }
+            ]
+          }
+        ],
+        "rowCount": 3,
+        "metadata": {
+          "currencyCode": "USD",
+          "timeZone": "Etc/GMT-7"
+        },
+        "kind": "analyticsData#runReport"
+      }
+    },
+    {
+      "preset": "tab-entry-overview",
+      "ok": true,
+      "result": {
+        "dimensionHeaders": [
+          {
+            "name": "eventName"
+          }
+        ],
+        "metricHeaders": [
+          {
+            "name": "eventCount",
+            "type": "TYPE_INTEGER"
+          },
+          {
+            "name": "totalUsers",
+            "type": "TYPE_INTEGER"
+          }
+        ],
+        "rows": [
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_notes_view"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "4085"
+              },
+              {
+                "value": "175"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_speaking_start"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "678"
+              },
+              {
+                "value": "209"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_vocab_view"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "430"
+              },
+              {
+                "value": "176"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_quiz_start"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "148"
+              },
+              {
+                "value": "56"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_listening_start"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "64"
+              },
+              {
+                "value": "2"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_ai_talk_start"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "3"
+              },
+              {
+                "value": "1"
+              }
+            ]
+          }
+        ],
+        "rowCount": 6,
+        "metadata": {
+          "currencyCode": "USD",
+          "timeZone": "Etc/GMT-7"
+        },
+        "kind": "analyticsData#runReport"
+      }
+    },
+    {
+      "preset": "tab-completion-overview",
+      "ok": true,
+      "result": {
+        "dimensionHeaders": [
+          {
+            "name": "eventName"
+          }
+        ],
+        "metricHeaders": [
+          {
+            "name": "eventCount",
+            "type": "TYPE_INTEGER"
+          },
+          {
+            "name": "totalUsers",
+            "type": "TYPE_INTEGER"
+          }
+        ],
+        "rows": [
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_matching_complete"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "59"
+              },
+              {
+                "value": "26"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_quiz_complete"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "31"
+              },
+              {
+                "value": "20"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_speaking_complete"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "17"
+              },
+              {
+                "value": "14"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_video_tab_saved_review_complete"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "5"
+              },
+              {
+                "value": "4"
+              }
+            ]
+          }
+        ],
+        "rowCount": 4,
+        "metadata": {
+          "currencyCode": "USD",
+          "timeZone": "Etc/GMT-7"
+        },
+        "kind": "analyticsData#runReport"
+      }
+    },
+    {
+      "preset": "practice-depth-overview",
+      "ok": true,
+      "result": {
+        "dimensionHeaders": [
+          {
+            "name": "eventName"
+          }
+        ],
+        "metricHeaders": [
+          {
+            "name": "eventCount",
+            "type": "TYPE_INTEGER"
+          },
+          {
+            "name": "totalUsers",
+            "type": "TYPE_INTEGER"
+          }
+        ],
+        "rows": [
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_practice_start"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "998"
+              },
+              {
+                "value": "498"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_srs_review"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "415"
+              },
+              {
+                "value": "99"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_practice_complete"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "398"
+              },
+              {
+                "value": "176"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_srs_flashcard"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "89"
+              },
+              {
+                "value": "50"
+              }
+            ]
+          },
+          {
+            "dimensionValues": [
+              {
+                "value": "activity_srs_quiz"
+              }
+            ],
+            "metricValues": [
+              {
+                "value": "64"
+              },
+              {
+                "value": "24"
+              }
+            ]
+          }
+        ],
+        "rowCount": 5,
+        "metadata": {
+          "currencyCode": "USD",
+          "timeZone": "Etc/GMT-7"
+        },
+        "kind": "analyticsData#runReport"
+      }
+    }
+  ]
+}

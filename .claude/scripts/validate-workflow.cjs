@@ -451,6 +451,45 @@ function validateProject(projectRoot) {
     }
   }
 
+  const requiredEffortAssignments = {
+    'codebase-scout': 'medium',
+    'ga4-analyst': 'high',
+    'project-manager': 'high',
+    'marketing-strategist': 'high',
+    'technical-brainstormer': 'high',
+    'implementation-planner': 'high',
+    'quality-reviewer': 'high'
+  };
+
+  for (const [agentName, expectedEffort] of Object.entries(requiredEffortAssignments)) {
+    const agent = agentMap.get(agentName);
+    if (!agent) {
+      continue;
+    }
+
+    if (agent.frontmatter.effort !== expectedEffort) {
+      errors.push(`Agent ${agentName} must declare effort: ${expectedEffort}`);
+    }
+  }
+
+  const requiredAgentSkillPreloads = {
+    'codebase-scout': ['eup-scout']
+  };
+
+  for (const [agentName, requiredSkills] of Object.entries(requiredAgentSkillPreloads)) {
+    const agent = agentMap.get(agentName);
+    if (!agent) {
+      continue;
+    }
+
+    const skills = agent.frontmatter.skills || [];
+    for (const skillName of requiredSkills) {
+      if (!Array.isArray(skills) || !skills.includes(skillName)) {
+        errors.push(`Agent ${agentName} must preload ${skillName} because subagents do not inherit parent skills`);
+      }
+    }
+  }
+
   for (const [skillName, agentName] of Object.entries(coreSkillBindings)) {
     const skill = skillMap.get(skillName);
     if (!skill) {
@@ -742,6 +781,61 @@ function validateProject(projectRoot) {
     }
   }
 
+  const analyticsSkill = skillMap.get('eup-analytics');
+  if (!analyticsSkill) {
+    errors.push('Missing skill: eup-analytics');
+  } else {
+    const analyticsTools = analyticsSkill.frontmatter['allowed-tools'] || [];
+    if (!Array.isArray(analyticsTools) || !analyticsTools.includes('Write') || !analyticsTools.includes('Edit')) {
+      errors.push('eup-analytics must allow Write and Edit so direct analytics runs can save analysis.md under reports/analytics/**');
+    }
+
+    const analyticsContent = readFile(analyticsSkill.filePath);
+    for (const pattern of [
+      /reports\/analytics\/<date-or-slug>\/analysis\.md/i,
+      /Only skip file output when the user explicitly asks for an in-chat-only answer/i,
+      /The saved report should be the default output for `\/eup-analytics`/i,
+      /Compare `conversions\.json` to `tracking-plan\.md`/i,
+      /activeUsers > sessions/i,
+      /State whether each key ratio uses unique users or event counts/i,
+      /Do not rank channels with false precision/i
+    ]) {
+      if (!pattern.test(analyticsContent)) {
+        errors.push(`eup-analytics is missing durable report guidance matching ${pattern}`);
+      }
+    }
+  }
+
+  const analyticsTemplatePath = path.join(
+    projectRoot,
+    '.claude',
+    'skills',
+    'eup-analytics',
+    'references',
+    'analytics-report-template.md'
+  );
+  if (!fs.existsSync(analyticsTemplatePath)) {
+    errors.push('Missing analytics report template reference: .claude/skills/eup-analytics/references/analytics-report-template.md');
+  } else {
+    const analyticsTemplate = readFile(analyticsTemplatePath);
+    for (const pattern of [
+      /^##\s+Scope$/im,
+      /^##\s+KPI Snapshot$/im,
+      /^##\s+Watch And Practice Funnel$/im,
+      /^##\s+Acquisition Quality$/im,
+      /^##\s+Conversion Quality$/im,
+      /^##\s+Key Findings$/im,
+      /^##\s+Recommended Actions$/im,
+      /^##\s+Instrumentation Gaps$/im,
+      /Compare `conversions\.json` to `tracking-plan\.md`/i,
+      /Do not over-rank channels if the `conversions` metric is polluted/i
+    ]) {
+      if (!pattern.test(analyticsTemplate)) {
+        errors.push(`Analytics report template is missing required structure matching ${pattern}`);
+      }
+    }
+  }
+
   const strategyMemoTemplatePath = path.join(
     projectRoot,
     '.claude',
@@ -803,6 +897,36 @@ function validateProject(projectRoot) {
     }
     if (!/debate-memo\.md/i.test(reportsReadme)) {
       errors.push('reports/README.md must document debate-memo.md');
+    }
+    if (!/reports\/analytics\/YYYYMMDD-ga4\//i.test(reportsReadme) || !/analysis\.md/i.test(reportsReadme)) {
+      errors.push('reports/README.md must document durable analytics reports under reports/analytics/**');
+    }
+    for (const pattern of [
+      /KPI Snapshot/i,
+      /Watch And Practice Funnel/i,
+      /Acquisition Quality/i,
+      /Conversion Quality/i,
+      /Instrumentation Gaps/i
+    ]) {
+      if (!pattern.test(reportsReadme)) {
+        errors.push(`reports/README.md must document analytics report section ${pattern}`);
+      }
+    }
+  }
+
+  const claudeReadmePath = path.join(projectRoot, 'CLAUDE.md');
+  if (!fs.existsSync(claudeReadmePath)) {
+    errors.push('Missing CLAUDE.md');
+  } else {
+    const claudeReadme = readFile(claudeReadmePath);
+    for (const pattern of [
+      /implementation-planner \(inside \/eup-dev-intake by default\)/i,
+      /`eup-dev-intake` \| Manual PM\/scout\/brainstorm intake that writes `dev-intake\.md` and, by default, finishes the approval-ready plan bundle/i,
+      /`eup-plan` \| Standalone planner entrypoint/i
+    ]) {
+      if (!pattern.test(claudeReadme)) {
+        errors.push(`CLAUDE.md must document the combined dev-intake -> approval flow matching ${pattern}`);
+      }
     }
   }
 
@@ -892,8 +1016,8 @@ function validateProject(projectRoot) {
     errors.push('Missing tracking-plan.md');
   } else {
     const trackingPlan = readFile(trackingPlanPath);
-    if (!/signup_completed/i.test(trackingPlan) || !/subscription_started/i.test(trackingPlan)) {
-      errors.push('tracking-plan.md must include the current signup and subscription conversion events');
+    if (!/app_store_subscription_convert/i.test(trackingPlan) || !/in_app_purchase/i.test(trackingPlan)) {
+      errors.push('tracking-plan.md must include the current purchase and subscription conversion events');
     }
     if (/challenge_joined|workflow_submitted|challenge-funnel/i.test(trackingPlan)) {
       errors.push('tracking-plan.md still contains the old challenge funnel vocabulary');

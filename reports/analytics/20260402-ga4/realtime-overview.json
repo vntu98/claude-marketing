@@ -1,0 +1,35 @@
+{
+  "dimensionHeaders": [
+    {
+      "name": "country"
+    },
+    {
+      "name": "deviceCategory"
+    }
+  ],
+  "metricHeaders": [
+    {
+      "name": "activeUsers",
+      "type": "TYPE_INTEGER"
+    }
+  ],
+  "rows": [
+    {
+      "dimensionValues": [
+        {
+          "value": "Vietnam"
+        },
+        {
+          "value": "mobile"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "23"
+        }
+      ]
+    }
+  ],
+  "rowCount": 1,
+  "kind": "analyticsData#runRealtimeReport"
+}

@@ -1,0 +1,820 @@
+{
+  "dimensionHeaders": [
+    {
+      "name": "eventName"
+    }
+  ],
+  "metricHeaders": [
+    {
+      "name": "eventCount",
+      "type": "TYPE_INTEGER"
+    },
+    {
+      "name": "totalUsers",
+      "type": "TYPE_INTEGER"
+    }
+  ],
+  "rows": [
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_word_define"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "91330"
+        },
+        {
+          "value": "824"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_app_open"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "49480"
+        },
+        {
+          "value": "2676"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "notification_receive"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "25742"
+        },
+        {
+          "value": "1195"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "user_engagement"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "25445"
+        },
+        {
+          "value": "2550"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "screen_view"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "16813"
+        },
+        {
+          "value": "2636"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_watch"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "9995"
+        },
+        {
+          "value": "1719"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "session_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "7178"
+        },
+        {
+          "value": "2654"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_watch_suggested"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "5416"
+        },
+        {
+          "value": "1209"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "notification_dismiss"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "4888"
+        },
+        {
+          "value": "280"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_search"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "4504"
+        },
+        {
+          "value": "572"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_switch"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "4123"
+        },
+        {
+          "value": "336"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_notes_view"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "4085"
+        },
+        {
+          "value": "175"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_app_close"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "2906"
+        },
+        {
+          "value": "625"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "first_open"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "2590"
+        },
+        {
+          "value": "2585"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_word_save"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "1186"
+        },
+        {
+          "value": "134"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_home_nav_tab_switch"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "1077"
+        },
+        {
+          "value": "164"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "app_update"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "1015"
+        },
+        {
+          "value": "703"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_practice_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "998"
+        },
+        {
+          "value": "498"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_onboarding_objective_continue"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "777"
+        },
+        {
+          "value": "738"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_onboarding_level_continue"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "759"
+        },
+        {
+          "value": "736"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_onboarding_topics_continue"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "746"
+        },
+        {
+          "value": "736"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_speaking_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "678"
+        },
+        {
+          "value": "209"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_import"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "620"
+        },
+        {
+          "value": "175"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_vocab_review"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "521"
+        },
+        {
+          "value": "284"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "app_remove"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "508"
+        },
+        {
+          "value": "490"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_vocab_view"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "430"
+        },
+        {
+          "value": "176"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_srs_review"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "415"
+        },
+        {
+          "value": "99"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "notification_open"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "409"
+        },
+        {
+          "value": "165"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_practice_complete"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "398"
+        },
+        {
+          "value": "176"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_home_daily_challenge_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "255"
+        },
+        {
+          "value": "105"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "notification_foreground"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "177"
+        },
+        {
+          "value": "110"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_quiz_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "148"
+        },
+        {
+          "value": "56"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "app_store_subscription_renew"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "92"
+        },
+        {
+          "value": "7"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_srs_flashcard"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "89"
+        },
+        {
+          "value": "50"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "ad_reward"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "70"
+        },
+        {
+          "value": "33"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_srs_quiz"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "64"
+        },
+        {
+          "value": "24"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_listening_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "64"
+        },
+        {
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "os_update"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "64"
+        },
+        {
+          "value": "58"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_share_youtube"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "59"
+        },
+        {
+          "value": "29"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_matching_complete"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "59"
+        },
+        {
+          "value": "26"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_quiz_complete"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "31"
+        },
+        {
+          "value": "20"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_saved_review_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "22"
+        },
+        {
+          "value": "9"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_speaking_complete"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "17"
+        },
+        {
+          "value": "14"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "in_app_purchase"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "13"
+        },
+        {
+          "value": "13"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_saved_review_complete"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "5"
+        },
+        {
+          "value": "4"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_video_tab_ai_talk_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "3"
+        },
+        {
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "app_clear_data"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "3"
+        },
+        {
+          "value": "3"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_promo_sale_popup_click"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "2"
+        },
+        {
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_ai_conversation_generate"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "1"
+        },
+        {
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_ai_conversation_select_words"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "1"
+        },
+        {
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_ai_conversation_session_complet"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "1"
+        },
+        {
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "activity_ai_conversation_session_start"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "1"
+        },
+        {
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "dimensionValues": [
+        {
+          "value": "(not set)"
+        }
+      ],
+      "metricValues": [
+        {
+          "value": "0"
+        },
+        {
+          "value": "2294"
+        }
+      ]
+    }
+  ],
+  "rowCount": 53,
+  "metadata": {
+    "currencyCode": "USD",
+    "timeZone": "Etc/GMT-7"
+  },
+  "kind": "analyticsData#runReport"
+}

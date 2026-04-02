@@ -3,7 +3,7 @@ name: eup-analytics
 description: When the user wants to set up, improve, or audit analytics tracking and measurement. Also use when the user mentions "set up tracking," "GA4," "Google Analytics," "conversion tracking," "event tracking," "UTM parameters," "tag manager," "GTM," "analytics implementation," "tracking plan," "how do I measure this," "track conversions," "attribution," "Mixpanel," "Segment," "are my events firing," or "analytics isn't working." Use this whenever someone asks how to know if something is working or wants to measure marketing results. For A/B test measurement, see eup-abtest.
 context: fork
 agent: ga4-analyst
-allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash
+allowed-tools: Read, Glob, Grep, WebSearch, WebFetch, Bash, Write, Edit
 metadata:
   version: 1.1.0
 ---
@@ -25,6 +25,75 @@ Before implementing tracking, understand:
 
 If GA4 credentials exist, prefer `node tools/ga4.js presets run --preset <name> --property "$GA4_PROPERTY_ID"` or `node tools/ga4.js ...` for live property data before giving recommendations.
 When the task is part of `/eup-market-cycle`, save durable findings as `reports/research/YYYYMMDD-[slug]/ga4-insights.md` and `reports/research/YYYYMMDD-[slug]/channel-scorecard.md`.
+When the task is a direct analytics readout, audit, or snapshot review, create a durable analytics report on disk instead of stopping with only an in-chat answer.
+Read and follow `.claude/skills/eup-analytics/references/analytics-report-template.md` when you save a durable analytics report.
+
+## Durable Output Rules
+
+1. If the argument points to a folder under `reports/analytics/<date-or-slug>/`, save the analysis to:
+   - `reports/analytics/<date-or-slug>/analysis.md`
+2. If the argument points to a JSON file inside `reports/analytics/**`, save the analysis to the same folder as:
+   - `analysis.md`
+3. If the task is a live GA4 read without an existing analytics folder, create:
+   - `reports/analytics/YYYYMMDD-ga4/analysis.md`
+4. Only skip file output when the user explicitly asks for an in-chat-only answer.
+5. The saved report must be the primary deliverable for direct `/eup-analytics` runs.
+
+## Measurement Integrity First
+
+Before you interpret funnel quality, channel quality, or monetization:
+
+1. Compare `conversions.json` to `tracking-plan.md` and classify each marked conversion as primary signal, supporting signal, or noise.
+2. Flag impossible or suspicious rows such as `activeUsers > sessions`, `(not set)` attribution with large active-user volume, 0% engagement anomalies, or event names that do not match the tracking plan.
+3. State whether each key ratio uses unique users or event counts, and name the denominator explicitly.
+4. Do not rank channels with false precision when the underlying conversion metric is polluted by noisy Admin conversions.
+5. Separate measurement-integrity findings from product-funnel findings so the team knows what must be fixed in GA4 Admin, what must be fixed in instrumentation, and what is a real product or growth issue.
+
+## Required Report Structure
+
+For durable analytics reports, use this outline:
+
+```markdown
+# GA4 Analysis
+
+## Scope
+- data source
+- date range
+- property
+
+## KPI Snapshot
+- top-level metrics and what they imply
+
+## Watch And Practice Funnel
+- watch -> define -> save
+- tab entry vs tab completion
+- practice depth / SRS signals
+
+## Acquisition Quality
+- highest-quality sources, mediums, campaigns
+- attribution gaps or `(not set)` issues
+
+## Conversion Quality
+- current conversion events
+- suspicious or noisy conversions
+
+## Key Findings
+1. ...
+2. ...
+3. ...
+
+## Recommended Actions
+1. ...
+2. ...
+3. ...
+
+## Instrumentation Gaps
+- missing events
+- missing completion signals
+- taxonomy mismatches
+```
+
+If the task includes a snapshot folder, cite the exact files you read in `## Scope`.
 
 ---
 
@@ -287,6 +356,15 @@ When the output should feed strategy or PM intake, create:
 
 - `ga4-insights.md`: KPI snapshot, anomalies, funnel drop-offs, instrumentation gaps, and recommended actions
 - `channel-scorecard.md`: per-channel signal quality, efficiency notes, confidence level, and next action
+
+### Direct Analytics Snapshot Mode
+
+When the user gives you a GA4 snapshot folder or asks you to analyze current GA4 data directly, save:
+
+- `reports/analytics/YYYYMMDD-ga4/analysis.md`, or
+- `reports/analytics/<existing-folder>/analysis.md` when the snapshot folder already exists
+
+The saved report should be the default output for `/eup-analytics`.
 
 ---
 

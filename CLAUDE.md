@@ -29,7 +29,7 @@ marketing-strategist → reports/strategy/YYYYMMDD-[slug]/strategy-memo.md
       ↓
 project-manager + codebase-scout + technical-brainstormer
       ↓
-/eup-plan → plans/<slug>/plan.md + task-graph.json + ownership-matrix.md
+implementation-planner (inside /eup-dev-intake by default) → plans/<slug>/plan.md + task-graph.json + ownership-matrix.md
       ↓
 ⛔ USER APPROVAL REQUIRED
       ↓
@@ -93,12 +93,12 @@ database-engineer + backend-engineer + frontend-engineer + mobile-engineer|fulls
 |---------|------|
 | `eup-market-cycle` | Manual marketing intelligence run using Agent Teams and durable research artifacts |
 | `eup-debate` | Manual cross-company debate across marketing and dev before intake or planning is locked |
-| `eup-dev-intake` | Manual PM/scout/brainstorm intake that writes `dev-intake.md` and feeds planning |
+| `eup-dev-intake` | Manual PM/scout/brainstorm intake that writes `dev-intake.md` and, by default, finishes the approval-ready plan bundle |
 | `eup-implement` | Manual engineering execution from an approved plan and task graph |
 | `eup-company-status` | Manual company status summary across strategy, plan, approval, and team progress |
 | `eup-scout` | Scout the codebase before planning or implementation |
 | `eup-brainstorm` | Explore technical options and recommend one path |
-| `eup-plan` | Create the approved multi-phase implementation plan |
+| `eup-plan` | Standalone planner entrypoint when you want a plan bundle without running the full dev-intake team |
 | `eup-frontend` | Frontend execution for web UI and learner-facing flows |
 
 ## Execution Rules
@@ -109,7 +109,7 @@ database-engineer + backend-engineer + frontend-engineer + mobile-engineer|fulls
 4. `/eup-debate` is the optional cross-company challenge step after strategy and before intake or planning when the decision still needs adversarial review
 5. When multiple strategy memos exist and no active strategy state is set, the most recently edited `reports/strategy/**/strategy-memo.md` becomes the active input for `/eup-dev-intake`
 6. `/eup-dev-intake` is blocked until that saved strategy memo is complete, and it should save `reports/strategy/YYYYMMDD-[slug]/dev-intake.md`
-7. `/eup-plan` writes `plans/<slug>/plan.md` with `Approval Status: pending` plus `task-graph.json` and `ownership-matrix.md`; that plan becomes the active plan automatically
+7. `/eup-dev-intake` should normally finish by dispatching `implementation-planner`, which writes `plans/<slug>/plan.md` with `Approval Status: pending` plus `task-graph.json` and `ownership-matrix.md`; use `/eup-plan` when a standalone planner pass is explicitly preferred
 8. No source-code implementation before the user explicitly approves the active plan
 9. The main session is the team lead. Teammates claim tasks, report progress through native task updates, and do not recursively spawn more teammates
 10. Marketing, PM, growth, and planner roles are restricted to reports/docs/plans/tracking artifacts. Engineers own implementation files

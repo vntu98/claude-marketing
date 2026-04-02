@@ -44,7 +44,7 @@
   },
   "learner-journey-funnel": {
     "type": "report",
-    "description": "Core learner journey and monetization funnel event counts.",
+    "description": "Minimal watch and per-tab practice funnel for the mobile learning experience.",
     "dateRanges": [
       {
         "startDate": "30daysAgo",
@@ -63,13 +63,145 @@
         "fieldName": "eventName",
         "inListFilter": {
           "values": [
-            "signup_started",
-            "signup_completed",
-            "placement_test_completed",
-            "lesson_started",
-            "lesson_completed",
-            "paywall_viewed",
-            "subscription_started"
+            "activity_video_watch",
+            "activity_word_define",
+            "activity_word_save",
+            "activity_video_tab_notes_view",
+            "activity_video_tab_vocab_view",
+            "activity_video_tab_speaking_start",
+            "activity_video_tab_speaking_complete",
+            "activity_video_tab_listening_start",
+            "activity_video_tab_listening_complete",
+            "activity_video_tab_quiz_start",
+            "activity_video_tab_quiz_complete",
+            "activity_video_tab_saved_review_complete",
+            "activity_video_tab_matching_complete",
+            "activity_video_tab_ai_talk_start",
+            "activity_video_tab_ai_talk_complete"
+          ]
+        }
+      }
+    }
+  },
+  "watch-core-actions": {
+    "type": "report",
+    "description": "Core watch-to-lookup-to-save actions.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "eventName"
+    ],
+    "metrics": [
+      "eventCount",
+      "totalUsers"
+    ],
+    "dimensionFilter": {
+      "filter": {
+        "fieldName": "eventName",
+        "inListFilter": {
+          "values": [
+            "activity_video_watch",
+            "activity_word_define",
+            "activity_word_save"
+          ]
+        }
+      }
+    }
+  },
+  "tab-entry-overview": {
+    "type": "report",
+    "description": "Which learning tabs users enter after watching.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "eventName"
+    ],
+    "metrics": [
+      "eventCount",
+      "totalUsers"
+    ],
+    "dimensionFilter": {
+      "filter": {
+        "fieldName": "eventName",
+        "inListFilter": {
+          "values": [
+            "activity_video_tab_notes_view",
+            "activity_video_tab_vocab_view",
+            "activity_video_tab_speaking_start",
+            "activity_video_tab_listening_start",
+            "activity_video_tab_quiz_start",
+            "activity_video_tab_ai_talk_start"
+          ]
+        }
+      }
+    }
+  },
+  "tab-completion-overview": {
+    "type": "report",
+    "description": "Which learning tabs users complete.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "eventName"
+    ],
+    "metrics": [
+      "eventCount",
+      "totalUsers"
+    ],
+    "dimensionFilter": {
+      "filter": {
+        "fieldName": "eventName",
+        "inListFilter": {
+          "values": [
+            "activity_video_tab_speaking_complete",
+            "activity_video_tab_listening_complete",
+            "activity_video_tab_quiz_complete",
+            "activity_video_tab_saved_review_complete",
+            "activity_video_tab_matching_complete",
+            "activity_video_tab_ai_talk_complete"
+          ]
+        }
+      }
+    }
+  },
+  "practice-depth-overview": {
+    "type": "report",
+    "description": "Cross-tab practice and SRS depth signals.",
+    "dateRanges": [
+      {
+        "startDate": "30daysAgo",
+        "endDate": "today"
+      }
+    ],
+    "dimensions": [
+      "eventName"
+    ],
+    "metrics": [
+      "eventCount",
+      "totalUsers"
+    ],
+    "dimensionFilter": {
+      "filter": {
+        "fieldName": "eventName",
+        "inListFilter": {
+          "values": [
+            "activity_practice_start",
+            "activity_practice_complete",
+            "activity_srs_review",
+            "activity_srs_flashcard",
+            "activity_srs_quiz"
           ]
         }
       }

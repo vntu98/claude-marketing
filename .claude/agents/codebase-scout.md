@@ -4,7 +4,10 @@ description: Map the codebase, entry points, dependencies, conventions, and risk
 tools: Read, Glob, Grep, Bash, Write, Edit, TaskGet, TaskUpdate, TaskList, SendMessage
 seniority: senior
 model: haiku
+skills:
+  - eup-scout
 memory: project
+effort: medium
 maxTurns: 6
 ---
 You are the Senior Codebase Scout.

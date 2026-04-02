@@ -1372,6 +1372,61 @@ test('manual company orchestration skills exist and are manual-only', () => {
   }
 });
 
+test('eup-analytics can save durable analytics reports by default', () => {
+  const analyticsSkill = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-analytics', 'SKILL.md'),
+    'utf8'
+  );
+  const analyticsTemplate = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'skills', 'eup-analytics', 'references', 'analytics-report-template.md'),
+    'utf8'
+  );
+
+  assert.match(analyticsSkill, /^allowed-tools:\s*.*\bWrite\b.*\bEdit\b/m);
+  assert.match(analyticsSkill, /reports\/analytics\/<date-or-slug>\/analysis\.md/i);
+  assert.match(analyticsSkill, /Only skip file output when the user explicitly asks for an in-chat-only answer/i);
+  assert.match(analyticsSkill, /The saved report should be the default output for `\/eup-analytics`/i);
+  assert.match(analyticsSkill, /Compare `conversions\.json` to `tracking-plan\.md`/i);
+  assert.match(analyticsSkill, /activeUsers > sessions/i);
+  assert.match(analyticsSkill, /State whether each key ratio uses unique users or event counts/i);
+  assert.match(analyticsTemplate, /^##\s+Conversion Quality$/im);
+  assert.match(analyticsTemplate, /Do not over-rank channels if the `conversions` metric is polluted/i);
+});
+
+test('critical agents preload the right skills and reasoning effort for team execution', () => {
+  const scoutAgent = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'agents', 'codebase-scout.md'),
+    'utf8'
+  );
+  const ga4Agent = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'agents', 'ga4-analyst.md'),
+    'utf8'
+  );
+  const plannerAgent = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'agents', 'implementation-planner.md'),
+    'utf8'
+  );
+  const reviewerAgent = fs.readFileSync(
+    path.join(projectRoot, '.claude', 'agents', 'quality-reviewer.md'),
+    'utf8'
+  );
+
+  assert.match(scoutAgent, /^skills:\s*$/m);
+  assert.match(scoutAgent, /^\s*-\s+eup-scout\s*$/m);
+  assert.match(scoutAgent, /^effort:\s*medium\s*$/m);
+  assert.match(ga4Agent, /^effort:\s*high\s*$/m);
+  assert.match(plannerAgent, /^effort:\s*high\s*$/m);
+  assert.match(reviewerAgent, /^effort:\s*high\s*$/m);
+});
+
+test('CLAUDE docs describe the default combined dev-intake to approval flow', () => {
+  const claudeReadme = fs.readFileSync(path.join(projectRoot, 'CLAUDE.md'), 'utf8');
+
+  assert.match(claudeReadme, /implementation-planner \(inside \/eup-dev-intake by default\)/i);
+  assert.match(claudeReadme, /`eup-dev-intake` \| Manual PM\/scout\/brainstorm intake that writes `dev-intake\.md` and, by default, finishes the approval-ready plan bundle/i);
+  assert.match(claudeReadme, /`eup-plan` \| Standalone planner entrypoint/i);
+});
+
 test('market-cycle, debate, and dev-intake require team cleanup before creating a new team', () => {
   const marketCycle = fs.readFileSync(
     path.join(projectRoot, '.claude', 'skills', 'eup-market-cycle', 'SKILL.md'),

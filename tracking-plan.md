@@ -5,57 +5,62 @@ Last updated: 2026-03-31
 ## Overview
 
 - Property: `GA4_PROPERTY_ID` from `.env`
-- Data stream: web by default, with app events mirrored or mapped when mobile analytics is available
-- Primary business goal: acquire qualified learners, activate them into meaningful study, and convert the right segments into premium subscribers
-- Primary conversion: `signup_completed`
-- Secondary conversion: `subscription_started`
-- Supporting conversions: `placement_test_completed`, `lesson_completed`, `affiliate_signup_completed`, `lead_magnet_downloaded`
+- Data stream: app-first measurement for the mobile product, with web surfaces treated as supporting acquisition context
+- Primary business goal: measure whether learners watch real content, engage with vocabulary support, and use practice tabs deeply enough to justify monetization
+- Primary conversion: `app_store_subscription_convert`
+- Secondary conversion: `in_app_purchase`
+- Supporting conversions: `app_store_subscription_renew`, `activity_word_save`, `activity_practice_complete`
 
 ## Measurement Questions
 
-1. Which channels and campaigns drive the highest-quality learner signups?
-2. Which landing pages and content assets convert visitors into signup starts and completed signups?
-3. Where do learners drop between signup, placement, first lesson, paywall, and subscription?
-4. Which languages, intents, or acquisition paths lead to the strongest activation rate?
-5. Which content or social campaigns influence high-value actions such as lesson completion and subscription start?
+1. How many users actually watch learning content, and how many move from watching to word interaction?
+2. Which tabs are being used for practice after the watch event?
+3. Which tab experiences lead to completion rather than just entry?
+4. Which acquisition sources bring users who watch, save words, and practice?
+5. Which practice behaviors correlate with purchase and renewal signals?
 
 ## Funnel
 
 | Stage | Event | Success Signal | Owner |
 |------|-------|----------------|-------|
-| Discover | `page_view` | User lands on a key acquisition page | Marketing |
-| Engage | `cta_clicked` | User clicks a major CTA | Marketing |
-| Start Signup | `signup_started` | User begins registration | Marketing / Product |
-| Signup | `signup_completed` | User completes account creation | Product |
-| Placement | `placement_test_completed` | User finishes routing or level-setting step | Product |
-| First Value | `lesson_started` | User begins a meaningful lesson or exercise | Product |
-| Activation | `lesson_completed` | User completes first meaningful learning session | Product / Growth |
-| Monetization Intent | `paywall_viewed` | User reaches an upgrade surface | Growth |
-| Monetization | `subscription_started` | User starts paid subscription | Growth / Product |
+| Watch | `activity_video_watch` | User watches a real learning video | Product |
+| Understand | `activity_word_define` | User opens a dictionary/definition interaction | Product |
+| Save | `activity_word_save` | User saves a word for later review | Product |
+| Practice Entry | `activity_video_tab_*_start` or `*_view` | User enters a practice tab after watching | Product / Growth |
+| Practice Completion | `activity_video_tab_*_complete` | User finishes a tab-level practice experience | Product / Growth |
+| Monetization | `in_app_purchase` / `app_store_subscription_convert` | User pays after extracting value from watch + practice | Growth / Product |
 
 ## Conversion Events To Mark In GA4 Admin
 
-- `signup_completed`
-- `lesson_completed`
-- `subscription_started`
-- `affiliate_signup_completed`
+- `app_store_subscription_convert`
+- `in_app_purchase`
+- `app_store_subscription_renew`
 
 ## Event Catalog
 
 | Event | Category | Trigger | Required Params | Notes |
 |------|----------|---------|-----------------|-------|
-| `cta_clicked` | Acquisition | Any high-intent CTA click | `cta_label`, `cta_location`, `page_type` | Use for hero, sticky, lesson, and pricing CTAs |
-| `signup_started` | Acquisition | First interaction with signup flow | `signup_method`, `entry_point`, `language_interest` | Fire once per attempt |
-| `signup_completed` | Acquisition | Account creation succeeds | `signup_method`, `entry_point`, `language_interest` | Primary conversion |
-| `placement_test_started` | Activation | User starts placement or assessment | `language`, `entry_point` | Useful for onboarding diagnostics |
-| `placement_test_completed` | Activation | Placement or level routing finishes | `language`, `assigned_level` | Helps diagnose activation quality |
-| `lesson_started` | Activation | User starts first meaningful lesson | `language`, `lesson_type`, `entry_point` | Exclude trivial page opens |
-| `lesson_completed` | Activation | User completes lesson or core exercise | `language`, `lesson_type`, `difficulty_level` | Activation milestone |
-| `streak_updated` | Retention | Streak state changes meaningfully | `streak_length`, `language` | Optional if streaks are core product behavior |
-| `paywall_viewed` | Monetization | User sees upgrade surface | `offer_name`, `placement`, `language` | Tracks monetization pressure and targeting |
-| `subscription_started` | Monetization | User completes paid upgrade | `plan_name`, `billing_period`, `language` | Secondary conversion |
-| `affiliate_signup_completed` | Partnership | Affiliate registration succeeds | `entry_point`, `source_channel` | Tracks partner growth |
-| `lead_magnet_downloaded` | Content | User downloads a gated asset | `asset_name`, `language`, `placement` | Useful for owned-channel growth |
+| `activity_video_watch` | Watch | User watches a learning video | `video_id`, `source_type`, `language_pair` | Entry point for the content loop |
+| `activity_word_define` | Understand | User opens a word definition or lookup | `word`, `video_id`, `language_pair` | Measures comprehension intent |
+| `activity_word_save` | Save | User saves a word from a video | `word`, `video_id`, `language_pair` | Strong activation signal |
+| `activity_video_tab_notes_view` | Practice Tab | User opens Notes tab | `video_id`, `tab_name` | Lightweight tab engagement |
+| `activity_video_tab_vocab_view` | Practice Tab | User opens Vocabulary tab | `video_id`, `tab_name` | Lightweight tab engagement |
+| `activity_video_tab_speaking_start` | Practice Tab | User starts Speaking tab | `video_id`, `tab_name` | Start event for speaking practice |
+| `activity_video_tab_speaking_complete` | Practice Tab | User completes Speaking tab | `video_id`, `tab_name` | Completion signal |
+| `activity_video_tab_listening_start` | Practice Tab | User starts Listening tab | `video_id`, `tab_name` | Start event for listening practice |
+| `activity_video_tab_listening_complete` | Practice Tab | User completes Listening tab | `video_id`, `tab_name` | Completion signal |
+| `activity_video_tab_quiz_start` | Practice Tab | User starts Quiz tab | `video_id`, `tab_name` | Start event for quiz practice |
+| `activity_video_tab_quiz_complete` | Practice Tab | User completes Quiz tab | `video_id`, `tab_name` | Completion signal |
+| `activity_video_tab_saved_review_complete` | Practice Tab | User completes saved review tab flow | `video_id`, `tab_name` | Completion-only event |
+| `activity_video_tab_matching_complete` | Practice Tab | User completes matching tab flow | `video_id`, `tab_name` | Completion-only event |
+| `activity_video_tab_ai_talk_start` | Practice Tab | User starts AI Talk tab | `video_id`, `tab_name` | Start event for AI conversation tab |
+| `activity_video_tab_ai_talk_complete` | Practice Tab | User completes AI Talk tab | `video_id`, `tab_name` | Completion signal |
+| `activity_practice_start` | Cross-Tab Practice | User starts a generic practice flow | `practice_type`, `video_id` | Optional aggregate practice marker |
+| `activity_practice_complete` | Cross-Tab Practice | User completes a generic practice flow | `practice_type`, `video_id` | Optional aggregate completion marker |
+| `activity_srs_review` | Retention | User reviews SRS content | `review_type`, `deck_size` | Retention and habit-loop signal |
+| `in_app_purchase` | Monetization | User completes an in-app purchase | `product_id`, `billing_period` | Primary purchase event |
+| `app_store_subscription_convert` | Monetization | User converts to paid subscription | `plan_name`, `billing_period` | Primary subscription conversion |
+| `app_store_subscription_renew` | Monetization | Subscription renews | `plan_name`, `billing_period` | Revenue retention signal |
 
 ## Event Parameter Standards
 
@@ -103,46 +108,55 @@ Use these page or surface groupings in GTM or app code:
 |------|---------|---------------------|
 | `acquisition-overview` | Channel and campaign quality | Daily |
 | `landing-page-performance` | Which pages convert | Daily |
-| `learner-journey-funnel` | Drop-off from signup to activation and subscription | Daily |
+| `watch-core-actions` | Watch → define → save progression | Daily |
+| `learner-journey-funnel` | Watch-to-practice progression and per-tab completion | Daily |
+| `tab-entry-overview` | Which tabs users enter after watching | Daily |
+| `tab-completion-overview` | Which tabs users actually complete | Daily |
+| `practice-depth-overview` | Cross-tab practice and SRS depth | Daily |
 | `content-engagement` | Which content and landing assets drive intent | Weekly |
 | `event-breakdown` | Volume by event | Weekly |
 | `realtime-overview` | Live validation after launches | On demand |
 
+For the core watch-and-tabs snapshot, run:
+
+```bash
+node tools/ga4-watch-tabs.js --property "$GA4_PROPERTY_ID"
+```
+
 ## Validation Checklist
 
 - [ ] Enhanced Measurement enabled only where it does not duplicate custom events
-- [ ] DebugView shows `signup_completed`, `lesson_completed`, and `subscription_started`
+- [ ] DebugView shows `activity_video_watch`, `activity_word_save`, and at least one tab start/completion event
 - [ ] Conversion events marked in Admin
 - [ ] No PII in event params
 - [ ] UTM values normalized to lowercase
-- [ ] Language and learner-segment dimensions are applied consistently
+- [ ] `video_id`, `tab_name`, and `language_pair` are applied consistently where relevant
+- [ ] `watch-core-actions`, `tab-entry-overview`, and `tab-completion-overview` all return non-empty data
 - [ ] `learner-journey-funnel` preset returns expected event counts
 
 ## Example gtag / GTM Payloads
 
 ```javascript
-gtag('event', 'signup_completed', {
-  signup_method: 'email',
-  entry_point: 'hero',
-  language_interest: 'ja',
+gtag('event', 'activity_video_watch', {
+  video_id: 'abc123',
+  source_type: 'youtube',
+  language_pair: 'en-vi',
 });
 
-gtag('event', 'lesson_completed', {
-  language: 'ja',
-  lesson_type: 'vocabulary',
-  difficulty_level: 'n5',
+gtag('event', 'activity_video_tab_speaking_complete', {
+  video_id: 'abc123',
+  tab_name: 'speaking',
 });
 
-gtag('event', 'subscription_started', {
-  plan_name: 'premium_yearly',
+gtag('event', 'app_store_subscription_convert', {
+  plan_name: 'premium_monthly',
   billing_period: 'yearly',
-  language: 'ja',
 });
 ```
 
 ## Next Implementation Tasks
 
-1. Add a shared analytics helper in the web app or GTM data layer.
-2. Fire required events on signup, placement, lesson, paywall, and subscription milestones.
-3. Mark the four conversion events in GA4 Admin.
-4. Run the presets from `.claude/skills/eup-analytics/references/ga4-report-presets.md`.
+1. Add a shared analytics helper in the app for watch, dictionary, save, and tab practice events.
+2. Ensure each practice tab emits either a start/completion pair or a completion event at minimum.
+3. Mark purchase and subscription events as conversions in GA4 Admin.
+4. Run `watch-core-actions`, `tab-entry-overview`, `tab-completion-overview`, and `practice-depth-overview` after each analytics release.

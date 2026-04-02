@@ -1,0 +1,91 @@
+{
+  "conversionEvents": [
+    {
+      "name": "properties/517672135/conversionEvents/13203133441",
+      "eventName": "app_store_subscription_convert",
+      "createTime": "2025-12-27T16:04:18.628501Z",
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/13203133442",
+      "eventName": "app_store_subscription_renew",
+      "createTime": "2025-12-27T16:04:18.628501Z",
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/13203133443",
+      "eventName": "first_open",
+      "createTime": "2025-12-27T16:04:18.628501Z",
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/13203133444",
+      "eventName": "in_app_purchase",
+      "createTime": "2025-12-27T16:04:18.628501Z",
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/13203133445",
+      "eventName": "purchase",
+      "createTime": "2025-12-27T16:04:18.628501Z",
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/14085416906",
+      "eventName": "add_to_cart",
+      "createTime": "2026-03-20T03:31:11.135553Z",
+      "deletable": true,
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/14085416907",
+      "eventName": "add_to_wishlist",
+      "createTime": "2026-03-20T03:31:11.135553Z",
+      "deletable": true,
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/14085416908",
+      "eventName": "begin_checkout",
+      "createTime": "2026-03-20T03:31:11.135553Z",
+      "deletable": true,
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/14085416909",
+      "eventName": "session_start",
+      "createTime": "2026-03-20T03:31:11.135553Z",
+      "deletable": true,
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/14085416910",
+      "eventName": "view_item",
+      "createTime": "2026-03-20T03:31:11.135553Z",
+      "deletable": true,
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/14085416911",
+      "eventName": "view_item_list",
+      "createTime": "2026-03-20T03:31:11.135553Z",
+      "deletable": true,
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/14085416912",
+      "eventName": "view_search_results",
+      "createTime": "2026-03-20T03:31:11.135553Z",
+      "deletable": true,
+      "countingMethod": "ONCE_PER_EVENT"
+    },
+    {
+      "name": "properties/517672135/conversionEvents/14276917428",
+      "eventName": "activity_video_tab_switch",
+      "createTime": "2026-03-30T04:48:57.354466Z",
+      "deletable": true,
+      "custom": true,
+      "countingMethod": "ONCE_PER_EVENT"
+    }
+  ]
+}
